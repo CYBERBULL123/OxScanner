@@ -4,13 +4,13 @@
 
 ## Table of Contents 📚
 
-- [Features](#features)
-- [Requirements](#requirements)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Contribution](#contribution)
-- [License](#license)
-- [Contact](#contact)
+- [Features](#Features)
+- [Requirements](#Requirements)
+- [Installation](#Installation)
+- [Usage](#Usage)
+- [Contribution](#Contribution)
+- [License](#License)
+- [Contact](#Contact)
 
 ## Features ✨
 
@@ -101,4 +101,3 @@ For questions or feedback, please contact:
 ---
 
 Thank you for checking out OxScanner ! Happy hacking! 🔍💻
-```
