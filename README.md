@@ -1,4 +1,4 @@
-# OXSuite 🚀
+# OxScanner 🚀
 
 **OxScanner** is an advanced cybersecurity tool it is part of OxSuite built with Python and Streamlit, providing a range of functionalities including scanning, sniffing, and server setup for security analysis and network troubleshooting. This open-source project aims to facilitate cybersecurity professionals, developers, and enthusiasts in their journey to explore and enhance their network security skills.
 
