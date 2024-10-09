@@ -3,7 +3,7 @@
 **OxScanner** is a cutting-edge cybersecurity tool, part of the **OxSuite**, built with Python and Streamlit. It offers a suite of functionalities including scanning, sniffing, and server setup for security analysis and network troubleshooting. This open-source project is designed for cybersecurity professionals, developers, and enthusiasts, empowering them to enhance their network security skills.
 
 <p align="center">
-  <img src="ui/img/1.png" alt="OxScanner Banner" width="600"/>
+  <img src="ui/imgs/1.png" alt="OxScanner Banner" width="600"/>
 </p>
 
 ## Table of Contents 📚
@@ -21,7 +21,7 @@
 ## Features ✨
 
 <p align="center">
-  <img src="ui/img/2.png" alt="Features Overview" width="500"/>
+  <img src="ui/imgs/2.png" alt="Features Overview" width="500"/>
 </p>
 
 OxScanner provides a wide range of network security and troubleshooting features:
@@ -97,7 +97,7 @@ Once the application is running, you can explore its intuitive interface for a v
 - **IKE Scanning**: Input the target IP to scan for IKE vulnerabilities.
 
 <p align="center">
-  <img src="ui/img/3.png" alt="Usage Demo" width="600"/>
+  <img src="ui/imgs/3.png" alt="Usage Demo" width="600"/>
 </p>
 
 Each section of the app includes clear instructions to guide you through the process of executing network security tasks.
