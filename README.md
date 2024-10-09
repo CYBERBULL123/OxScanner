@@ -95,7 +95,7 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 For questions or feedback, please contact:
 
-- **Aditya Pandey** - [your.email@example.com](mailto:opaadi98@gmail.com)
+- **Aditya Pandey** - [📧](mailto:opaadi98@gmail.com)
 - **GitHub**: [CYBERBULL123](https://github.com/CYBERBULL123)
 
 ---
