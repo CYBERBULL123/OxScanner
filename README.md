@@ -1,9 +1,3 @@
-To make your project documentation more engaging and professional, I'll incorporate the images from the `ui/img` folder (assuming 1, 2, and 3 represent relevant images for your sections) and organize it for better readability. I'll also use some icons and formatting techniques to make it visually appealing and professional.
-
-Here's a refined and engaging version of your project documentation:
-
----
-
 # OxScanner 🚀
 
 **OxScanner** is a cutting-edge cybersecurity tool, part of the **OxSuite**, built with Python and Streamlit. It offers a suite of functionalities including scanning, sniffing, and server setup for security analysis and network troubleshooting. This open-source project is designed for cybersecurity professionals, developers, and enthusiasts, empowering them to enhance their network security skills.
