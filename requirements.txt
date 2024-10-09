@@ -1,0 +1,5 @@
+streamlit
+scapy
+re
+tabulate
+threading
