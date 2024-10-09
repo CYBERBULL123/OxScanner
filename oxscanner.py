@@ -47,33 +47,6 @@ port_details = {
     # Add more ports as needed
 }
 
-st.markdown(
-    """
-    <style>
-    /* Radio Button Styles */
-    .stRadio [data-baseweb="radio"] {
-        font-weight: bold;
-        transition: transform 0.3s ease, color 0.3s ease, filter 0.3s ease; /* Smooth hover transition */
-        padding: 10px 20px; /* Padding for radio buttons */
-        border-radius: 25px;
-        text-align: center;
-        margin: 5px 0; /* Margin between radio options */
-        font-size: 20px; /* Default font size */
-        color: #333; /* Default text color */
-        cursor: pointer; /* Pointer cursor for better UX */
-    }
-
-    /* Hover effect for radio buttons */
-    .stRadio [data-baseweb="radio"]:hover {
-        transform: translateY(-3px) scale(1.05);  /* Move up and scale slightly */
-        color: #00FFFF; /* Change text color to cyan on hover */
-        filter: brightness(1.2) drop-shadow(0 0 10px rgba(0, 255, 255, 0.5)); /* Brightness increase with cyan glowing effect */
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
 
 # Streamlit page configuration
 st.set_page_config(
