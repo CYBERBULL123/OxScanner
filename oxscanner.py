@@ -530,8 +530,9 @@ if not st.session_state.logged_in:
 
 else:
     st.header("🛜 OxScanner")
-    # Tools Section
-    with st.expander("Choose Tools 🧑‍💻"):
+    # Sidebar Section
+    with st.sidebar:
+        st.markdown("## Choose Tools 🧑‍💻")  # Sidebar title with emoji
         # Radio button for selecting sections
         section = st.radio("Select a Section:", 
             ["📃 Requirements",
@@ -544,7 +545,7 @@ else:
             "📜 DNS Server Setup", 
             "🌐 mDNS Server Setup", 
             "🔗 LLMNR Server Setup", 
-            "📡 Netbios Server Setup", 
+            "📡 NTbios Server Setup", 
             "🔍 TCP SYN Traceroute", 
             "🌐 UDP Traceroute", 
             "📡 DNS Traceroute", 
@@ -1094,7 +1095,7 @@ else:
 
 
     # Netbios Server Setup Section
-    elif section == "📡 Netbios Server Setup":
+    elif section == "📡 NTbios Server Setup":
         st.header("📡 Netbios Server Setup")
         
         # Informative Description

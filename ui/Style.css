@@ -23,7 +23,7 @@ body::before {
     animation: neonPulse 6s ease-in-out infinite;
 }
 
-/* Header - Dark Red with Centered Animation */
+/* Header - Dark Red with Box Shadow */
 h1, h2, h3, h4, h5, h6 {
     color: #8B0000; /* Dark red */
     text-align: center; /* Centered header */
@@ -32,18 +32,20 @@ h1, h2, h3, h4, h5, h6 {
     margin-bottom: 0.5rem;
     text-transform: uppercase;
     letter-spacing: 1px;
+    padding: 10px 20px; /* Padding to add space around the text */
+    border-radius: 10px; /* Slightly rounded edges for a softer look */
     border-bottom: 2px solid #00FF00; /* Green underline for terminal effect */
-    animation: headerGlow 3s ease-in-out infinite alternate;
-    transition: transform 0.5s ease-in-out; /* Smooth transformation */
+    background-color: rgba(0, 0, 0, 0.8); /* Transparent black background */
+    animation: headerPulse 3s ease-in-out infinite alternate;
 }
 
 /* Header Animation */
-@keyframes headerGlow {
+@keyframes headerPulse {
     0% {
-        text-shadow: 0 0 10px #66fcf1, 0 0 20px #66fcf1, 0 0 30px #66fcf1;
+        box-shadow: 0 0 10px #00FF00, 0 0 20px #00ff0062;
     }
     100% {
-        text-shadow: 0 0 20px #66fcf1, 0 0 30px #45a29e, 0 0 40px #66fcf1;
+        box-shadow: 0 0 20px #00FF00, 0 0 40px #00ff0078;
     }
 }
 
@@ -125,36 +127,79 @@ p, ol, ul, dl {
     margin: 0 0 1rem;
     padding: 0;
 }
+.st-emotion-cache-dvne4q {
+    background-color: #000000;
+}
 
 /* Radio Button Styles */
 .stRadio [data-baseweb="radio"] {
     font-weight: bold;
-    padding: 10px 20px;
+    padding: 15px 10px;
     border-radius: 25px; /* Rounded for uniformity */
     text-align: center;
-    margin: 5px 0;
+    margin: 5px 10px;
     font-size: 1.25rem;
     color: #00FF00; /* Green text */
     cursor: pointer;
-    background-color: #1f2833; /* Dark background for radio buttons */
-    transition: background-color 0.3s ease, color 0.3s ease;
+    background-color: #000000; /* Dark background for radio buttons */
+    transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.5); /* Subtle glow effect */
 }
 
 /* Hover effect for radio buttons */
 .stRadio [data-baseweb="radio"]:hover {
     background-color: #8B0000; /* Dark red background on hover */
     color: #00FF00; /* Green text on hover */
+    transform: scale(1.1); /* Slight scale increase for better interaction */
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.8), 0 0 30px rgba(0, 255, 0, 0.4); /* Stronger glow on hover */
 }
+
+/* Focus effect for radio buttons */
+.stRadio [data-baseweb="radio"]:focus {
+    outline: none; /* Remove default outline */
+    background-color: #8B0000; /* Same background as hover */
+    color: #00FF00; /* Keep green text */
+    box-shadow: 0 0 20px rgba(0, 255, 0, 1), 0 0 40px rgba(0, 255, 0, 0.6); /* Enhanced glow for focus */
+}
+
+/* Active/Selected state */
+.stRadio [data-baseweb="radio"]:checked {
+    background-color: #8B0000; /* Dark red background when selected */
+    color: #00FF00; /* Keep green text when selected */
+    border: 2px solid #00FF00; /* Green border to indicate selection */
+}
+
+/* Responsive Design for Radio Buttons */
+@media (max-width: 768px) {
+    .stRadio [data-baseweb="radio"] {
+        font-size: 1rem; /* Reduce font size on smaller screens */
+        padding: 8px 15px; /* Adjust padding for better touch interaction */
+        margin: 10px 5px; /* Tighter margin on smaller devices */
+    }
+}
+
+@media (max-width: 480px) {
+    .stRadio [data-baseweb="radio"] {
+        font-size: 0.9rem; /* Further reduce font size for very small screens */
+        padding: 6px 12px; /* Smaller padding for compact layout */
+    }
+}
+
+/* Transitions for smoother interaction */
+.stRadio [data-baseweb="radio"]:hover, .stRadio [data-baseweb="radio"]:focus, .stRadio [data-baseweb="radio"]:checked {
+    transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease; /* Smooth hover, focus, and checked state transitions */
+}
+
 
 /* Neon Background Animation */
 @keyframes neonPulse {
     0% {
-        opacity: 1.8;
+        opacity: 0.8;
         transform: translate(-50%, -50%) scale(1);
     }
     100% {
-        opacity: 1.4;
-        transform: translate(-50%, -50%) scale(1.6);
+        opacity: 0.4;
+        transform: translate(-50%, -50%) scale(1.2);
     }
 }
 
