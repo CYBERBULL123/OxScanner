@@ -1,43 +1,67 @@
+To make your project documentation more engaging and professional, I'll incorporate the images from the `ui/img` folder (assuming 1, 2, and 3 represent relevant images for your sections) and organize it for better readability. I'll also use some icons and formatting techniques to make it visually appealing and professional.
+
+Here's a refined and engaging version of your project documentation:
+
+---
+
 # OxScanner 🚀
 
-**OxScanner** is an advanced cybersecurity tool it is part of OxSuite built with Python and Streamlit, providing a range of functionalities including scanning, sniffing, and server setup for security analysis and network troubleshooting. This open-source project aims to facilitate cybersecurity professionals, developers, and enthusiasts in their journey to explore and enhance their network security skills.
+**OxScanner** is a cutting-edge cybersecurity tool, part of the **OxSuite**, built with Python and Streamlit. It offers a suite of functionalities including scanning, sniffing, and server setup for security analysis and network troubleshooting. This open-source project is designed for cybersecurity professionals, developers, and enthusiasts, empowering them to enhance their network security skills.
+
+<p align="center">
+  <img src="ui/img/1.png" alt="OxScanner Banner" width="600"/>
+</p>
 
 ## Table of Contents 📚
 
-- [Features](#Features)
-- [Requirements](#Requirements)
-- [Installation](#Installation)
-- [Usage](#Usage)
-- [Contribution](#Contribution)
-- [License](#License)
-- [Contact](#Contact)
+- [Features](#features-✨)
+- [Requirements](#requirements-🛠️)
+- [Installation](#installation-🥳)
+- [Usage](#usage-📖)
+- [Contribution](#contribution-🤝)
+- [License](#license-📜)
+- [Contact](#contact-📫)
+
+---
 
 ## Features ✨
 
-- **Network Scanning**: Discover active hosts, open ports, and services running on your network.
-- **ARP Spoofing and MitM Attacks**: Execute ARP cache poisoning and man-in-the-middle attacks for penetration testing.
-- **DNS and mDNS Server Setup**: Set up DNS, mDNS, LLMNR, and Netbios servers for various networking scenarios.
-- **IKE Scanning**: Analyze IKE (Internet Key Exchange) connections for VPN configurations.
+<p align="center">
+  <img src="ui/img/2.png" alt="Features Overview" width="500"/>
+</p>
+
+OxScanner provides a wide range of network security and troubleshooting features:
+
+- **Network Scanning**: Identify active hosts, open ports, and services on your network.
+- **ARP Spoofing and MitM Attacks**: Perform ARP cache poisoning and man-in-the-middle attacks for penetration testing.
+- **DNS and mDNS Server Setup**: Configure DNS, mDNS, LLMNR, and Netbios servers for various networking scenarios.
+- **IKE Scanning**: Analyze IKE (Internet Key Exchange) connections in VPN configurations.
 - **Wireless Sniffing**: Capture and analyze wireless network packets.
-- **Traceroute Capabilities**: Perform TCP SYN, UDP, and DNS traceroutes to analyze network paths.
-- **Classical Attacks**: Execute various classical network attacks for testing purposes.
+- **Traceroute Capabilities**: Execute TCP SYN, UDP, and DNS traceroutes for network path analysis.
+- **Classical Attacks**: Execute a range of classical network attacks for testing.
+
+---
 
 ## Requirements 🛠️
 
-Before using OXSuite, ensure you have the following:
+Ensure you meet the following requirements before using OxSuite:
 
 - **Python 3.6+**
-- **Streamlit**: For creating the web application interface.
+- **Streamlit**: For creating the web-based interface.
 - **Scapy**: For packet manipulation and crafting.
-- **Additional Python Libraries**: Install the required packages using the following command:
-  
+- **Additional Python Libraries**: Install all necessary dependencies with the following command:
+
   ```bash
   pip install -r requirements.txt
   ```
 
-- **Permissions**: Some features may require root or administrative permissions to execute properly. Use `sudo` on Linux/macOS, or run as an Administrator on Windows.
+- **Permissions**: Certain features may require root or administrative permissions. On Linux/macOS, use `sudo`. On Windows, run as Administrator.
+
+---
 
 ## Installation 🥳
+
+Get started with OxScanner by following these steps:
 
 1. **Clone the repository**:
 
@@ -51,7 +75,7 @@ Before using OXSuite, ensure you have the following:
    cd OxScanner
    ```
 
-3. **Install the required packages**:
+3. **Install required dependencies**:
 
    ```bash
    pip install -r requirements.txt
@@ -63,41 +87,58 @@ Before using OXSuite, ensure you have the following:
    streamlit run oxscanner.py
    ```
 
-5. **Open your web browser** and go to `http://localhost:8501` to access OXSuite.
+5. **Access the application**:
+
+   Open your browser and go to `http://localhost:8501` to interact with OxScanner.
+
+---
 
 ## Usage 📖
 
-- Follow the prompts in the application to execute various network security functions.
-- Each section of the app is designed to be intuitive and guide you through the necessary inputs.
-  
+Once the application is running, you can explore its intuitive interface for a variety of network security operations.
+
 ### Example Commands
 
-- **ARP Poisoning**: Input the client MAC and gateway IP to start the ARP poisoning.
-- **IKE Scanning**: Provide the target IP to scan for IKE vulnerabilities.
+- **ARP Poisoning**: Enter the client MAC address and gateway IP to initiate ARP poisoning.
+- **IKE Scanning**: Input the target IP to scan for IKE vulnerabilities.
+
+<p align="center">
+  <img src="ui/img/3.png" alt="Usage Demo" width="600"/>
+</p>
+
+Each section of the app includes clear instructions to guide you through the process of executing network security tasks.
+
+---
 
 ## Contribution 🤝
 
-Contributions are welcome! If you want to help improve OXSuite, please follow these steps:
+We encourage contributions! If you'd like to help improve OxScanner, please follow these steps:
 
 1. Fork the repository.
-2. Create a new branch (`git checkout -b feature/YourFeature`).
+2. Create a new branch for your feature (`git checkout -b feature/YourFeature`).
 3. Make your changes and commit them (`git commit -m 'Add new feature'`).
-4. Push to the branch (`git push origin feature/YourFeature`).
-5. Open a Pull Request.
+4. Push your branch (`git push origin feature/YourFeature`).
+5. Open a Pull Request for review.
 
-Please ensure to write tests for your features and keep your code clean and well-documented.
+Please ensure that your code is clean, well-documented, and includes appropriate tests.
+
+---
 
 ## License 📜
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License. For more details, please refer to the [LICENSE](LICENSE) file.
+
+---
 
 ## Contact 📫
 
-For questions or feedback, please contact:
+For any questions or feedback, feel free to reach out:
 
 - **Aditya Pandey** - [📧](mailto:opaadi98@gmail.com)
 - **GitHub**: [CYBERBULL123](https://github.com/CYBERBULL123)
 
 ---
 
-Thank you for checking out OxScanner ! Happy hacking! 🔍💻
+Thank you for exploring OxScanner! We wish you happy hacking! 🔍💻
+
+---
