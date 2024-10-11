@@ -660,6 +660,38 @@ else:
         - Start the application using the following command:
         ```bash
         streamlit oxscanner.py
+        ```
+        
+        Replace `your_app.py` with the actual filename of your Streamlit application.
+
+        - Access the application through a web browser at `http://localhost:8501`.
+
+        ##### 7. Additional Considerations ⚠️
+
+        - **Firewall Settings**: Ensure that firewall settings allow for the necessary network traffic for the application to function properly.
+        - **Network Configuration**: Depending on your network setup (especially in corporate environments), additional configuration might be required to allow for ARP, mDNS, and other network-related services to function.
+
+        ##### Example Commands 💻
+
+        To set up and run the application, follow these commands:
+
+        ```bash
+        # Install required packages
+        sudo apt update
+        sudo apt install dnsmasq
+        pip install streamlit scapy
+
+        # Enable IP forwarding
+        sudo sysctl -w net.ipv4.ip_forward=1
+
+        # Set wireless interface in monitor mode (for wlan0)
+        sudo ifconfig wlan0 down
+        sudo iwconfig wlan0 mode monitor
+        sudo ifconfig wlan0 up
+
+        # Run the Streamlit app
+        sudo streamlit run your_app.py
+        ```
         """)
 
     # DNS Queries Section
