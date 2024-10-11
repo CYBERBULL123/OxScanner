@@ -21,7 +21,7 @@
 ## Features ✨
 
 <p align="center">
-  <img src="ui/imgs/2.png" alt="Features Overview" width="500"/>
+  <img src="ui/imgs/2.png" alt="Features Overview" width="600"/>
 </p>
 
 OxScanner provides a wide range of network security and troubleshooting features:
@@ -129,7 +129,7 @@ This project is licensed under the MIT License. For more details, please refer t
 For any questions or feedback, feel free to reach out:
 
 - **Aditya Pandey** - [📧](mailto:opaadi98@gmail.com)
-- **GitHub**: [CYBERBULL123](https://github.com/CYBERBULL123)
+- **linkedIN**: [Aditya Pandey](https://www.linkedin.com/in/aditya-pandey-896109224)
 
 ---
 

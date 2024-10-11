@@ -30,7 +30,7 @@ h1, h2, h3, h4, h5, h6 {
     font-family: 'Courier New', monospace;
     font-weight: bold; /* Bold header for emphasis */
     margin-bottom: 0.5rem;
-    text-transform: uppercase;
+    /*text-transform: uppercase;*/
     letter-spacing: 1px;
     padding: 10px 20px; /* Padding to add space around the text */
     border-radius: 10px; /* Slightly rounded edges for a softer look */

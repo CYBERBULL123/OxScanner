@@ -590,7 +590,7 @@ else:
         st.markdown("""
         ##### 📜 Requirements and Prerequisites for OxScanner
 
-        To effectively use the OxScanner , please ensure the following requirements and prerequisites are met:
+        To effectively use the OxScanner, please ensure the following requirements and prerequisites are met:
 
         ##### 1. System Requirements 🖥️
 
@@ -616,18 +616,18 @@ else:
 
         - **Python Libraries**: 
         - Install the necessary libraries via pip. Use the following command to install all dependencies:
-        ```bash
-        pip install streamlit scapy
-        ```
+            ```bash
+            pip install streamlit scapy
+            ```
 
         - **Additional Dependencies**:
         - Some functionalities might require the installation of additional libraries or tools:
             - **Scapy**: For network packet manipulation and sniffing.
             - **dnsmasq**: Required for DNS and mDNS functionalities.
             - Install using:
-                ```bash
-                sudo apt install dnsmasq
-                ```
+            ```bash
+            sudo apt install dnsmasq
+            ```
 
         ##### 4. Tools Required 🔧
 
@@ -644,38 +644,22 @@ else:
             ifconfig
             ```
 
+        - **Monitor Mode for Wireless Testing**:
+        - To perform wireless network testing (e.g., Wi-Fi sniffing, wireless hopping), make sure that your wireless interfaces are set to monitor mode.
+        - Use the following commands to enable monitor mode for wireless interfaces (e.g., `wlan0`):
+            ```bash
+            sudo ifconfig wlan0 down
+            sudo iwconfig wlan0 mode monitor
+            sudo ifconfig wlan0 up
+            ```
+
+        - Once your interface is in monitor mode, you can scan wireless traffic and perform wireless-based attacks.
+
         ##### 6. Usage Instructions 🚀
 
         - Start the application using the following command:
         ```bash
-        streamlit run your_app.py
-        ```
-        Replace `your_app.py` with the actual filename of your Streamlit application.
-
-        - Access the application through a web browser at `http://localhost:8501`.
-
-        ##### 7. Additional Considerations ⚠️
-
-        - **Firewall Settings**: Ensure that firewall settings allow for the necessary network traffic for the application to function properly.
-        - **Network Configuration**: Depending on your network setup (especially in corporate environments), additional configuration might be required to allow for ARP, mDNS, and other network-related services to function.
-
-        ##### Example Commands 💻
-
-        To set up and run the application, follow these commands:
-
-        ```bash
-        # Install required packages
-        sudo apt update
-        sudo apt install dnsmasq
-        pip install streamlit scapy
-
-        # Enable IP forwarding
-        sudo sysctl -w net.ipv4.ip_forward=1
-
-        # Run the Streamlit app
-        sudo streamlit run your_app.py
-        ```
-
+        streamlit oxscanner.py
         """)
 
     # DNS Queries Section
