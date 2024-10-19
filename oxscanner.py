@@ -454,6 +454,7 @@ def run():
             icmp_layer = ans[ICMP]
             ip_in_icmp_layer = ans.getlayer(IP, 1)  # IP layer inside ICMP
             icmp_in_icmp_layer = ans.getlayer(ICMP, 1)  # ICMP layer inside ICMP
+            raw_layer = ans.getlayer(Raw)  # Raw data layer if present
 
             # Convert flags to string to avoid formatting errors
             ip_flags = str(ip_layer.flags) if ip_layer.flags is not None else 'N/A'
@@ -466,23 +467,23 @@ def run():
             # Create a consistent column width for the output
             column_width = 30
             separator = "   |   "
-            line = "-" * (column_width * 4 + len(separator) * 3)
+            line = "-" * (column_width * 5 + len(separator) * 4)
 
             # Column titles and formatted output
             output = f"""
-        {"ICMP Leaking Results:"}
-        {"IP Layer".ljust(column_width)}{separator}{"ICMP Layer".ljust(column_width)}{separator}{"IP in ICMP Layer".ljust(column_width)}{separator}{"ICMP in ICMP Layer".ljust(column_width)}
-        {line}
-        {"Version       : " + safe_format(ip_layer.version).ljust(column_width - 14)}{separator}{"Type          : " + safe_format(icmp_layer.type).ljust(column_width - 14)}{separator}{"Version       : " + safe_format(getattr(ip_in_icmp_layer, 'version', None)).ljust(column_width - 14)}{separator}{"Type          : " + safe_format(getattr(icmp_in_icmp_layer, 'type', None)).ljust(column_width - 14)}
-        {"IHL           : " + safe_format(ip_layer.ihl).ljust(column_width - 14)}{separator}{"Code          : " + safe_format(icmp_layer.code).ljust(column_width - 14)}{separator}{"IHL           : " + safe_format(getattr(ip_in_icmp_layer, 'ihl', None)).ljust(column_width - 14)}{separator}{"Code          : " + safe_format(getattr(icmp_in_icmp_layer, 'code', None)).ljust(column_width - 14)}
-        {"TOS           : " + safe_format(format(ip_layer.tos, '#04x')).ljust(column_width - 14)}{separator}{"Checksum      : " + safe_format(format(icmp_layer.chksum, '#04x')).ljust(column_width - 14)}{separator}{"TOS           : " + safe_format(format(getattr(ip_in_icmp_layer, 'tos', 0), '#04x')).ljust(column_width - 14)}{separator}{"Checksum      : " + safe_format(format(getattr(icmp_in_icmp_layer, 'chksum', 0), '#04x')).ljust(column_width - 14)}
-        {"Length        : " + safe_format(ip_layer.len).ljust(column_width - 14)}{separator}{"Pointer       : " + safe_format(getattr(icmp_layer, 'ptr', None)).ljust(column_width - 14)}{separator}{"Length        : " + safe_format(getattr(ip_in_icmp_layer, 'len', None)).ljust(column_width - 14)}{separator}{"ID            : " + safe_format(getattr(icmp_in_icmp_layer, 'id', None)).ljust(column_width - 14)}
-        {"ID            : " + safe_format(ip_layer.id).ljust(column_width - 14)}{separator}{"Length        : " + safe_format(getattr(icmp_layer, 'length', None)).ljust(column_width - 14)}{separator}{"ID            : " + safe_format(getattr(ip_in_icmp_layer, 'id', None)).ljust(column_width - 14)}{separator}{"Sequence      : " + safe_format(getattr(icmp_in_icmp_layer, 'seq', None)).ljust(column_width - 14)}
-        {"Flags         : " + safe_format(ip_flags).ljust(column_width - 14)}{separator}{"Protocol      : " + safe_format(ip_layer.proto).ljust(column_width - 14)}{separator}{"Flags         : " + safe_format(ip_in_icmp_flags).ljust(column_width - 14)}{separator}
-        {"Fragment      : " + safe_format(ip_layer.frag).ljust(column_width - 14)}{separator}{"TTL           : " + safe_format(ip_layer.ttl).ljust(column_width - 14)}{separator}{"Fragment      : " + safe_format(getattr(ip_in_icmp_layer, 'frag', None)).ljust(column_width - 14)}{separator}
-        {"TTL           : " + safe_format(ip_layer.ttl).ljust(column_width - 14)}{separator}{"Protocol      : " + safe_format(getattr(ip_in_icmp_layer, 'proto', None)).ljust(column_width - 14)}{separator}{"Source        : " + safe_format(ip_layer.src).ljust(column_width - 14)}{separator}
-        {"Source        : " + safe_format(ip_layer.src).ljust(column_width - 14)}{separator}{"Checksum      : " + safe_format(format(ip_layer.chksum, '#04x')).ljust(column_width - 14)}{separator}{"Destination   : " + safe_format(ip_layer.dst).ljust(column_width - 14)}{separator}
-        {"Destination   : " + safe_format(ip_layer.dst).ljust(column_width - 14)}{separator}"""
+            {"ICMP Leaking Results:"}
+            {"IP Layer".ljust(column_width)}{separator}{"ICMP Layer".ljust(column_width)}{separator}{"IP in ICMP Layer".ljust(column_width)}{separator}{"ICMP in ICMP Layer".ljust(column_width)}{separator}{"Raw Payload".ljust(column_width)}
+            {line}
+            {"Version       : " + safe_format(ip_layer.version).ljust(column_width - 14)}{separator}{"Type          : " + safe_format(icmp_layer.type).ljust(column_width - 14)}{separator}{"Version       : " + safe_format(getattr(ip_in_icmp_layer, 'version', None)).ljust(column_width - 14)}{separator}{"Type          : " + safe_format(getattr(icmp_in_icmp_layer, 'type', None)).ljust(column_width - 14)}{separator}{"Raw Data      : " + safe_format(raw_layer.load if raw_layer else 'N/A').ljust(column_width - 14)}
+            {"IHL           : " + safe_format(ip_layer.ihl).ljust(column_width - 14)}{separator}{"Code          : " + safe_format(icmp_layer.code).ljust(column_width - 14)}{separator}{"IHL           : " + safe_format(getattr(ip_in_icmp_layer, 'ihl', None)).ljust(column_width - 14)}{separator}{"Code          : " + safe_format(getattr(icmp_in_icmp_layer, 'code', None)).ljust(column_width - 14)}{separator}{"Checksum      : " + safe_format(format(icmp_layer.chksum, '#04x')).ljust(column_width - 14)}
+            {"TOS           : " + safe_format(format(ip_layer.tos, '#04x')).ljust(column_width - 14)}{separator}{"Checksum      : " + safe_format(format(icmp_layer.chksum, '#04x')).ljust(column_width - 14)}{separator}{"TOS           : " + safe_format(format(getattr(ip_in_icmp_layer, 'tos', 0), '#04x')).ljust(column_width - 14)}{separator}{"Checksum      : " + safe_format(format(getattr(icmp_in_icmp_layer, 'chksum', 0), '#04x')).ljust(column_width - 14)}
+            {"Length        : " + safe_format(ip_layer.len).ljust(column_width - 14)}{separator}{"Pointer       : " + safe_format(getattr(icmp_layer, 'ptr', None)).ljust(column_width - 14)}{separator}{"Length        : " + safe_format(getattr(ip_in_icmp_layer, 'len', None)).ljust(column_width - 14)}{separator}{"ID            : " + safe_format(getattr(icmp_in_icmp_layer, 'id', None)).ljust(column_width - 14)}{separator}{"ID Checksum   : " + safe_format(format(getattr(icmp_in_icmp_layer, 'chksum', 0), '#04x')).ljust(column_width - 14)}
+            {"ID            : " + safe_format(ip_layer.id).ljust(column_width - 14)}{separator}{"Length        : " + safe_format(getattr(icmp_layer, 'length', None)).ljust(column_width - 14)}{separator}{"ID            : " + safe_format(getattr(ip_in_icmp_layer, 'id', None)).ljust(column_width - 14)}{separator}{"Sequence      : " + safe_format(getattr(icmp_in_icmp_layer, 'seq', None)).ljust(column_width - 14)}{separator}
+            {"Flags         : " + safe_format(ip_flags).ljust(column_width - 14)}{separator}{"Protocol      : " + safe_format(ip_layer.proto).ljust(column_width - 14)}{separator}{"Flags         : " + safe_format(ip_in_icmp_flags).ljust(column_width - 14)}{separator}{"Protocol      : " + safe_format(getattr(ip_in_icmp_layer, 'proto', None)).ljust(column_width - 14)}
+            {"Fragment      : " + safe_format(ip_layer.frag).ljust(column_width - 14)}{separator}{"TTL           : " + safe_format(ip_layer.ttl).ljust(column_width - 14)}{separator}{"Fragment      : " + safe_format(getattr(ip_in_icmp_layer, 'frag', None)).ljust(column_width - 14)}{separator}{"TTL           : " + safe_format(getattr(ip_in_icmp_layer, 'ttl', None)).ljust(column_width - 14)}
+            {"TTL           : " + safe_format(ip_layer.ttl).ljust(column_width - 14)}{separator}{"Source        : " + safe_format(ip_layer.src).ljust(column_width - 14)}{separator}{"Source        : " + safe_format(ip_in_icmp_layer.src if ip_in_icmp_layer else 'N/A').ljust(column_width - 14)}{separator}{"Destination   : " + safe_format(ip_in_icmp_layer.dst if ip_in_icmp_layer else 'N/A').ljust(column_width - 14)}
+            {"Destination   : " + safe_format(ip_layer.dst).ljust(column_width - 14)}{separator}{"Checksum      : " + safe_format(format(ip_layer.chksum, '#04x')).ljust(column_width - 14)}{separator}{"Checksum      : " + safe_format(format(getattr(ip_in_icmp_layer, 'chksum', 0), '#04x')).ljust(column_width - 14)}{separator}
+            """
             
             return output
         else:
