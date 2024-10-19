@@ -8,18 +8,6 @@
 
 ---
 
-## Table of Contents 📚
-
-- [Features](#features-✨)
-- [Requirements](#requirements-🛠️)
-- [Installation](#installation-🥳)
-- [Usage](#usage-📖)
-- [Contribution](#contribution-🤝)
-- [License](#license-📜)
-- [Contact](#contact-📫)
-
----
-
 ## Features ✨
 
 OxScanner provides an extensive array of network security and troubleshooting features:
@@ -128,12 +116,6 @@ We welcome contributions from the community! To contribute to OxScanner, follow 
 5. Open a Pull Request for review.
 
 When contributing, please ensure your code is clean, well-documented, and adheres to best practices.
-
----
-
-## License 📜
-
-This project is licensed under the MIT License. You can find more details in the [LICENSE](LICENSE) file.
 
 ---
 
