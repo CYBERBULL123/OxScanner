@@ -2,10 +2,6 @@
 
 **OxScanner** is a powerful cybersecurity tool, part of the **OxSuite**, built using Python and Streamlit. It offers a comprehensive suite of functionalities for network security analysis, including scanning, sniffing, and server setup. Designed for cybersecurity professionals, developers, and enthusiasts, OxScanner empowers users to enhance their network security expertise and test systems against a range of attacks.
 
-<p align="center">
-  <img src="ui/imgs/1.png" alt="OxScanner Banner" width="600"/>
-</p>
-
 ---
 
 ## Features ✨
@@ -19,10 +15,6 @@ OxScanner provides an extensive array of network security and troubleshooting fe
 - **Wireless Sniffing**: Capture and analyze wireless network packets for deep insights into Wi-Fi traffic.
 - **Traceroute Capabilities**: Perform TCP SYN, UDP, and DNS traceroutes to analyze network path and latency.
 - **Classical Network Attacks**: Execute a range of classic network attack types such as Ping of Death, SYN Flood, UDP Flood, and more.
-
-<p align="center">
-  <img src="ui/imgs/2.png" alt="Features Overview" width="600"/>
-</p>
 
 ---
 
@@ -70,7 +62,7 @@ Follow these steps to set up OxScanner on your machine:
 
 4. **Run the application**:
    ```bash
-   streamlit run oxscanner.py
+   streamlit run app.py
    ```
 
 5. **Access the application**:
@@ -89,9 +81,6 @@ The intuitive interface of OxScanner allows for easy navigation and execution of
 
 Each section of the app includes step-by-step instructions, helping you execute network security tasks effortlessly.
 
-<p align="center">
-  <img src="ui/imgs/3.png" alt="Usage Demo" width="600"/>
-</p>
 
 ### Wireless Sniffing and Testing:
 
@@ -123,7 +112,7 @@ When contributing, please ensure your code is clean, well-documented, and adhere
 
 For questions, suggestions, or feedback, feel free to reach out:
 
-- **Aditya Pandey** - [📧 ](mailto:opaadi98@gmail.com)
+- **Aditya Pandey** - [📧](mailto:opaadi98@gmail.com)
 - **LinkedIn**: [Aditya Pandey](https://www.linkedin.com/in/aditya-pandey-896109224)
 
 ---
