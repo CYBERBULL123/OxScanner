@@ -27,12 +27,6 @@ p, ol, ul, dl {
     margin: 0 0 1.5rem;
 }
 
-/* Button Styles */
-.button-container {
-    display: flex;
-    justify-content: center;
-    margin: 2rem 0;
-}
 
 /* Button Styles */
 .stButton>button {
@@ -44,8 +38,8 @@ p, ol, ul, dl {
     font-size: 0.9rem;
     cursor: pointer;
     text-align: center;
+    justify-content: center;
     transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
-    display: inline-block;
 }
 
 .stButton>button:hover {

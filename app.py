@@ -37,18 +37,18 @@ def login():
     st.session_state.logged_in = True
 
 # Display introduction and login page if not logged in
-if not st.session_state.logged_in:
+if not st.session_state.get("logged_in", False):
     st.title("🛡️ OxScanner & OxOSINT: Network and OSINT Security Suite")
 
     st.write("""
-    Welcome to **OxScanner** and **OxOSINT**, your advanced toolkit for 
+    Welcome to **OxScanner** and **OxOSINT**, your advanced cybersecurity toolkit for 
     **network analysis**, **security testing**, and **open-source intelligence (OSINT)**.
 
     🚀 **Key Features**:
     - **OxScanner**: Comprehensive tools for network vulnerability assessment and attack simulations.
-    - **OxOSINT**: Cutting-edge OSINT tools to gather actionable intelligence from public data sources.
-
-    With this suite, you can confidently secure your network and gather critical insights for robust cybersecurity strategies. Ready to explore?
+    - **OxOSINT**: Cutting-edge tools to analyze PCAP files, visualize insights, and provide detailed subnetting.
+    
+    With this suite, you can secure your network confidently, analyze traffic efficiently, and gather critical insights. Ready to explore?
     """)
 
     st.divider()
@@ -56,15 +56,15 @@ if not st.session_state.logged_in:
     st.subheader("🔑 Why Choose OxScanner?")
     st.markdown("""
     - **Real-Time Analysis**: Test your network defenses and simulate potential attacks.
-    - **Deep Scanning**: Discover vulnerabilities with detailed network assessments.
+    - **Deep Scanning**: Identify vulnerabilities with comprehensive network assessments.
     - **Wireless Insights**: Monitor and analyze wireless traffic seamlessly.
     """)
 
     st.subheader("🕵️‍♀️ Why Choose OxOSINT?")
     st.markdown("""
-    - **Data Aggregation**: Automate the collection of OSINT from multiple public sources.
-    - **Actionable Intelligence**: Transform raw data into meaningful insights for decision-making.
-    - **Ethical Compliance**: Ensure responsible and ethical use of intelligence tools.
+    - **PCAP Analysis**: Upload and analyze PCAP files with detailed charts, graphs, and traffic breakdowns.
+    - **Subnetting**: Generate **VLSM** and **FLSM** subnetting plans for your network.
+    - **Actionable Intelligence**: Transform raw data into insights for informed decision-making.
     """)
 
     if st.button("🔑 Login to Explore", on_click=login):
