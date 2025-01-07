@@ -1,75 +1,62 @@
-/* Base Styles - Terminal Look */
+/* Base Styles - Cyber Hacker Theme */
 body {
-    background-color: #0b0c10; /* Very dark background */
-    color: #00FF00; /* Bright green text */
+    background-color: #121212; /* Deep dark gray for a subtle hacker vibe */
+    color: #00ff7f; /* Soft neon green text */
     font-family: 'Courier New', monospace; /* Terminal-like font */
     margin: 0;
     padding: 0;
-    overflow: hidden; /* Prevent scrollbars for neon effect */
+    overflow: hidden; /* Prevent scrollbars */
 }
 
-/* Neon Background Effect */
+/* Subtle Glow Effect */
 body::before {
     content: "";
     position: fixed;
     top: 50%;
     left: 50%;
-    width: 150%;
-    height: 150%;
-    background: radial-gradient(circle, rgba(66, 255, 247, 0.2), transparent 70%);
-    z-index: -1; /* Behind everything */
-    filter: blur(100px);
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(0, 255, 127, 0.1), transparent 70%);
+    z-index: -1;
+    filter: blur(80px);
     transform: translate(-50%, -50%);
-    animation: neonPulse 6s ease-in-out infinite;
+    animation: glowPulse 6s ease-in-out infinite;
 }
 
-/* Header - Dark Red with Box Shadow */
+/* Header Styles */
 h1, h2, h3, h4, h5, h6 {
-    color: #8B0000; /* Dark red */
-    text-align: center; /* Centered header */
+    color: #00e676; /* Subdued green */
+    text-align: center;
     font-family: 'Courier New', monospace;
-    font-weight: bold; /* Bold header for emphasis */
+    font-weight: bold;
     margin-bottom: 0.5rem;
-    /*text-transform: uppercase;*/
+    text-transform: uppercase;
     letter-spacing: 1px;
-    padding: 10px 20px; /* Padding to add space around the text */
-    border-radius: 10px; /* Slightly rounded edges for a softer look */
-    border-bottom: 2px solid #00FF00; /* Green underline for terminal effect */
-    background-color: rgba(0, 0, 0, 0.8); /* Transparent black background */
-    animation: headerPulse 3s ease-in-out infinite alternate;
-}
-
-/* Header Animation */
-@keyframes headerPulse {
-    0% {
-        box-shadow: 0 0 10px #00FF00, 0 0 20px #00ff0062;
-    }
-    100% {
-        box-shadow: 0 0 20px #00FF00, 0 0 40px #00ff0078;
-    }
+    padding: 10px 20px;
+    border-radius: 5px;
+    background-color: rgba(18, 18, 18, 0.9); /* Slightly darker background */
 }
 
 /* Paragraph and List Styles */
 p, ol, ul, dl {
-    color: #00FF00; /* Bright green for text */
+    color: #d0eb04; /* Soft grayish-blue for readability */
     line-height: 1.6;
     margin: 0 0 1.5rem;
 }
 
-/* Button Container */
+/* Button Styles */
 .button-container {
     display: flex;
     justify-content: center;
     margin: 2rem 0;
 }
 
-/* Buttons - Rounded, Padded, Engaging */
 .stButton>button {
-    background-color: #1f2833; /* Dark background for buttons */
-    color: #00FF00; /* Green text for buttons */
-    border: 2px solid #00FF00;
-    border-radius: 25px; /* More rounded corners */
-    padding: 0.75rem 2rem; /* Increased padding for better clickability */
+    background-color: #1e1e1e; /* Subtle dark background */
+    color: #00ff7f; /* Neon green text */
+    border: 2px solid #00ff7f;
+    border-radius: 20px;
+    padding: 0.75rem 2rem;
     font-size: 1rem;
     font-weight: bold;
     cursor: pointer;
@@ -77,129 +64,85 @@ p, ol, ul, dl {
     transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
     display: block;
     margin: 0 auto;
-    box-shadow: 0 0 10px #00FF00; /* Glow effect */
+    box-shadow: 0 0 10px rgba(0, 255, 127, 0.5);
 }
 
-/* Button Hover Effect */
 .stButton>button:hover {
-    background-color: #8B0000; /* Dark red background on hover */
-    color: #0b0c10; /* Dark background color for text on hover */
-    transform: scale(1.1); /* Slight scaling effect on hover */
-    box-shadow: 0 0 20px #00FF00, 0 0 40px #00FF00; /* Stronger glow on hover */
+    background-color: #333333; /* Darker hover background */
+    color: #00ff7f; /* Keep text color consistent */
+    transform: scale(1.05); /* Slight scaling effect */
+    box-shadow: 0 0 20px rgba(0, 255, 127, 0.7);
 }
 
-/* Input Fields - Terminal Style */
+/* Input Fields */
 .stTextInput>div>div>input, .stTextArea>div>textarea, .stFileUploader>div>div>input {
-    background-color: #1f2833; /* Dark background for inputs */
-    color: #00FF00; /* Green text */
-    border: 2px solid #00FF00;
-    border-radius: 5px;
+    background-color: #1e1e1e;
+    color: #00e676; /* Subdued neon green */
+    border: 2px solid #00ff7f;
+    border-radius: 10px;
     padding: 0.75rem;
-    font-family: 'Courier New', monospace; /* Terminal-like font */
-    transition: border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+    font-family: 'Courier New', monospace;
+    transition: border-color 0.3s ease, background-color 0.3s ease;
 }
 
 .stTextInput>div>div>input:focus, .stTextArea>div>textarea:focus, .stFileUploader>div>div>input:focus {
-    color: #00FF00; /* Keep green text when focused */
-    background-color: #0b0c10; /* Dark background when focused */
-    border-color: #8B0000; /* Dark red border when focused */
+    background-color: #121212; /* Match body background */
+    border-color: #00e676; /* Highlighted border */
     outline: none;
 }
 
 .stTextInput>div>div>input::placeholder, .stTextArea>div>textarea::placeholder {
-    color: #00FF00; /* Bright green placeholder text */
+    color: #b0c4de; /* Soft placeholder color */
 }
 
-/* App Container - Terminal Look */
+/* App Container */
 .stApp {
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 2rem;
-    background-color: #0b0c10; /* Dark terminal background */
+    background-color: #121212;
 }
 
-/* Markdown - Terminal Style */
+/* Markdown */
 .stMarkdown p {
     font-size: 1.1rem;
-    font-weight: 400;
-    color: #00FF00; /* Green text */
+    color: #00ff7f;
     margin: 0 0 1rem;
-    padding: 0;
-}
-.st-emotion-cache-dvne4q {
-    background-color: #000000;
 }
 
-/* Radio Button Styles */
+/* Radio Buttons */
 .stRadio [data-baseweb="radio"] {
     font-weight: bold;
-    padding: 15px 10px;
-    border-radius: 25px; /* Rounded for uniformity */
-    text-align: center;
-    margin: 5px 10px;
-    font-size: 1.25rem;
-    color: #00FF00; /* Green text */
-    cursor: pointer;
-    background-color: #000000; /* Dark background for radio buttons */
-    transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.5); /* Subtle glow effect */
+    padding: 10px 15px;
+    border-radius: 10px;
+    margin: 5px;
+    font-size: 1rem;
+    color: #00ff7f;
+    background-color: #1e1e1e;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    box-shadow: 0 0 5px rgba(0, 255, 127, 0.3);
 }
 
-/* Hover effect for radio buttons */
 .stRadio [data-baseweb="radio"]:hover {
-    background-color: #8B0000; /* Dark red background on hover */
-    color: #00FF00; /* Green text on hover */
-    transform: scale(1.1); /* Slight scale increase for better interaction */
-    box-shadow: 0 0 15px rgba(0, 255, 0, 0.8), 0 0 30px rgba(0, 255, 0, 0.4); /* Stronger glow on hover */
+    background-color: #333333;
+    transform: scale(1.05);
 }
 
-/* Focus effect for radio buttons */
-.stRadio [data-baseweb="radio"]:focus {
-    outline: none; /* Remove default outline */
-    background-color: #8B0000; /* Same background as hover */
-    color: #00FF00; /* Keep green text */
-    box-shadow: 0 0 20px rgba(0, 255, 0, 1), 0 0 40px rgba(0, 255, 0, 0.6); /* Enhanced glow for focus */
-}
-
-/* Active/Selected state */
 .stRadio [data-baseweb="radio"]:checked {
-    background-color: #8B0000; /* Dark red background when selected */
-    color: #00FF00; /* Keep green text when selected */
-    border: 2px solid #00FF00; /* Green border to indicate selection */
+    background-color: #00e676;
+    color: #121212;
 }
 
-/* Responsive Design for Radio Buttons */
-@media (max-width: 768px) {
-    .stRadio [data-baseweb="radio"] {
-        font-size: 1rem; /* Reduce font size on smaller screens */
-        padding: 8px 15px; /* Adjust padding for better touch interaction */
-        margin: 10px 5px; /* Tighter margin on smaller devices */
-    }
-}
-
-@media (max-width: 480px) {
-    .stRadio [data-baseweb="radio"] {
-        font-size: 0.9rem; /* Further reduce font size for very small screens */
-        padding: 6px 12px; /* Smaller padding for compact layout */
-    }
-}
-
-/* Transitions for smoother interaction */
-.stRadio [data-baseweb="radio"]:hover, .stRadio [data-baseweb="radio"]:focus, .stRadio [data-baseweb="radio"]:checked {
-    transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease; /* Smooth hover, focus, and checked state transitions */
-}
-
-
-/* Neon Background Animation */
-@keyframes neonPulse {
+/* Neon Glow Animation */
+@keyframes glowPulse {
     0% {
-        opacity: 0.8;
+        opacity: 0.9;
         transform: translate(-50%, -50%) scale(1);
     }
     100% {
-        opacity: 0.4;
-        transform: translate(-50%, -50%) scale(1.2);
+        opacity: 0.5;
+        transform: translate(-50%, -50%) scale(1.1);
     }
 }
 
@@ -209,6 +152,13 @@ p, ol, ul, dl {
         padding: 1rem;
     }
     h1, h2, h3, h4, h5, h6 {
-        font-size: 1.5rem;
+        font-size: 1.25rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .stRadio [data-baseweb="radio"] {
+        font-size: 0.9rem;
+        padding: 5px 10px;
     }
 }
