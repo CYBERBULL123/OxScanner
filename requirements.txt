@@ -1,5 +1,8 @@
 streamlit
 scapy
-re
 tabulate
 threading
+panda
+folium
+streamlit_folium 
+altair
