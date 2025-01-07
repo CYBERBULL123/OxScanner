@@ -1,7 +1,6 @@
 streamlit
 scapy
 tabulate
-threading
 panda
 folium
 streamlit_folium 
