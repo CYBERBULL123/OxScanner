@@ -14,8 +14,6 @@ def load_css(file_name):
     if Path(file_name).exists():
         with open(file_name) as f:
             st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
-    else:
-        st.error("🚫 CSS file not found")
 
 load_css("ui/Style.css")
 

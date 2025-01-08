@@ -49,12 +49,17 @@ def run():
                     available_subnets.remove(available_subnet)
                     break
         return sub_networks
+    
+    # Function to Calculate FLSM Subnetting
+    def subnet_flsm(network, host_count):
+        required_prefix = 32 - int(math.log2(max(host_count) + 2))
+        return list(network.subnets(new_prefix=required_prefix))
 
     # Function to Generate Charts for Subnetting
     def generate_subnet_chart(data):
         chart_data = pd.DataFrame({
             "Subnet": [f"Subnet {i+1}" for i in range(len(data))],
-            "Hosts": [int(str(network).split("/")[1]) for network in data]
+            "Hosts": [IPv4Network(network).num_addresses for network in data]
         })
         chart = alt.Chart(chart_data).mark_bar().encode(
             x="Subnet",
@@ -68,7 +73,7 @@ def run():
     st.markdown("**Empower your cybersecurity and networking tasks with a robust, professional toolkit.**")
 
     # Tab Setup
-    tabs = st.tabs(["🌐 Subnetting Dashboard", "📍 Geolocation Insights", "🔍 Advanced OSINT Tools"])
+    tabs = st.tabs(["🌐 Subnetting Dashboard", "📍 Geolocation Insights", "🔍 PCAP Tools"])
 
     # Tab 1: Subnetting Dashboard
     with tabs[0]:
@@ -85,15 +90,22 @@ def run():
                     net = IPv4Network(cidr_input, strict=False)
                     subnetworks = list(map(int, subnetworks_input.split()))
 
+                    # Generate Subnets Based on Selected Method
                     if subnetting_method.startswith("VLSM"):
                         results = subnet_vlsm(net, subnetworks)
                     else:
-                        results = list(net.subnets(new_prefix=(32 - int(math.log2(max(subnetworks) + 2)))))
+                        results = subnet_flsm(net, subnetworks)
+
+                    # Create DataFrame of Results
+                    subnet_df = pd.DataFrame({
+                        "Subnet ID": [f"Subnet {i+1}" for i in range(len(results))],
+                        "Subnet": [str(sub) for sub in results],  # Convert to string
+                        "Hosts (Usable)": [IPv4Network(sub).num_addresses - 2 for sub in results]
+                    })
 
                     st.success("✅ Subnets Calculated Successfully!")
                     st.subheader("🔍 Generated Subnets")
-                    for idx, subnet in enumerate(results, start=1):
-                        st.write(f"{idx}. {subnet}")
+                    st.dataframe(subnet_df)
 
                     st.subheader("📊 Subnet Visualization")
                     subnet_chart = generate_subnet_chart(results)
@@ -219,7 +231,7 @@ def run():
                         protocol_distribution = packets_df['Protocol'].value_counts().reset_index()
                         protocol_distribution.columns = ['Protocol', 'Count']
                         
-                        protocol_chart = alt.Chart(protocol_distribution).mark_bar().encode(
+                        protocol_chart = alt.Chart(protocol_distribution).mark_circle().encode(
                             x=alt.X('Protocol:N', title='Protocol'),
                             y=alt.Y('Count:Q', title='Packet Count'),
                             color='Protocol:N',
@@ -273,7 +285,7 @@ def run():
                     with col1:
                         detailed_protocol = packets_df.groupby('Protocol')['Length'].sum().reset_index()
                         
-                        detailed_protocol_chart = alt.Chart(detailed_protocol).mark_bar().encode(
+                        detailed_protocol_chart = alt.Chart(detailed_protocol).mark_area().encode(
                             x=alt.X('Protocol:N', title='Protocol'),
                             y=alt.Y('Length:Q', title='Total Packet Size (Bytes)'),
                             color='Protocol:N',
@@ -296,7 +308,7 @@ def run():
                     with col2:
                         # Visualize the first 10 packets using Altair
                         # 1. Packet Length Distribution
-                        length_chart = alt.Chart(packets_df.head(-1)).mark_bar().encode(
+                        length_chart = alt.Chart(packets_df.head(-1)).mark_rule().encode(
                             x='Length:Q',
                             y='Source:N',
                             color='Protocol:N',
